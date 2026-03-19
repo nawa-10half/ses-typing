@@ -1,0 +1,118 @@
+import { useEffect, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { Card } from '../ui/Card.tsx'
+import { Button } from '../ui/Button.tsx'
+import { MetricGrid } from '../ui/MetricGrid.tsx'
+import { SpeedChart } from '../ui/SpeedChart.tsx'
+import { HighScoreList } from '../ui/HighScoreList.tsx'
+import { WordLog } from '../ui/WordLog.tsx'
+import { RankingBoard } from '../ui/RankingBoard.tsx'
+import { showToast } from '../ui/Toast.tsx'
+import { useGameStore } from '../../stores/gameStore.ts'
+import { COURSES } from '../../lib/constants.ts'
+import type { AudioEngine } from '../../lib/audioEngine.ts'
+import { useParticles } from '../canvas/ParticleCanvas.tsx'
+
+interface ResultScreenProps {
+  audio: AudioEngine
+}
+
+export function ResultScreen({ audio }: ResultScreenProps) {
+  const getResults = useGameStore(s => s.getResults)
+  const saveScore = useGameStore(s => s.saveScore)
+  const startGame = useGameStore(s => s.startGame)
+  const setScreen = useGameStore(s => s.setScreen)
+  const activeCourseId = useGameStore(s => s.activeCourseId)
+  const particles = useParticles()
+
+  const results = useMemo(() => getResults(), []) // eslint-disable-line react-hooks/exhaustive-deps
+  const courseName = COURSES.find(c => c.id === activeCourseId)?.name ?? ''
+
+  useEffect(() => {
+    audio.gameComplete()
+    setTimeout(() => particles?.confetti(120), 300)
+    setTimeout(() => particles?.confetti(60), 800)
+
+    saveScore({
+      score: results.score,
+      accuracy: results.accuracy,
+      combo: results.maxCombo,
+      date: new Date().toISOString().slice(0, 10),
+      courseId: activeCourseId ?? undefined,
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleRetry = () => {
+    if (activeCourseId) startGame(activeCourseId)
+  }
+
+  const handleShare = () => {
+    const text = [
+      '\uD83C\uDFAE SES沼タイピング',
+      `\uD83D\uDCCB ${courseName}`,
+      '',
+      `\uD83C\uDFC6 ${results.rank.rank}`,
+      `\uD83D\uDCCA Score: ${results.score}`,
+      `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
+      `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
+      '',
+      '#SES沼タイピング #タイピングゲーム',
+    ].join('\n')
+
+    navigator.clipboard.writeText(text).then(
+      () => showToast('クリップボードにコピーしました'),
+      () => showToast('コピーに失敗しました'),
+    )
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <Card>
+        <p className="text-[10px] text-white/40 tracking-[3px] uppercase mb-2">
+          {courseName}
+        </p>
+        <h2 className="text-[28px] font-semibold animate-stage-title">
+          {results.rank.rank}
+        </h2>
+        <p className="text-[13px] text-white/60 leading-[1.9] mb-6 mt-1">
+          {results.rank.comment}
+        </p>
+
+        <MetricGrid
+          metrics={[
+            { label: 'SCORE', value: results.score, large: true },
+            { label: 'ACCURACY', value: `${results.accuracy}%`, large: true },
+            { label: 'MAX COMBO', value: results.maxCombo, large: true },
+          ]}
+        />
+
+        <SpeedChart log={results.log} />
+        <HighScoreList currentScore={results.score} />
+        <RankingBoard />
+        <WordLog log={results.log} />
+
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleShare}>
+              シェア
+            </Button>
+            <Button variant="primary" className="flex-1" onClick={handleRetry}>
+              もう一度 →
+            </Button>
+          </div>
+          <button
+            onClick={() => setScreen('title')}
+            className="text-xs text-white/40 hover:text-white/60 transition-colors py-2 cursor-pointer"
+          >
+            コース選択に戻る
+          </button>
+        </div>
+      </Card>
+    </motion.div>
+  )
+}
