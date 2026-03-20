@@ -78,6 +78,10 @@ export class AudioEngine {
     this._tone(180, 0.3, 'square', 0.08, 0.05)
   }
 
+  wrongKey(): void {
+    this._tone(200, 0.08, 'square', 0.08)
+  }
+
   timeout(): void {
     this._tone(150, 0.35, 'triangle', 0.15)
     this._noise(0.15, 0.05, 0.1)

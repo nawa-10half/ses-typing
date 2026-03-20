@@ -1,5 +1,6 @@
 export interface Word {
   word: string
+  kana: string
   romaji: string
   flavor: string
 }

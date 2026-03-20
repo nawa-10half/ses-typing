@@ -4,10 +4,13 @@ import { Card } from '../ui/Card.tsx'
 import { TimerBar } from '../ui/TimerBar.tsx'
 import { WordDisplay } from '../ui/WordDisplay.tsx'
 import { ComboDisplay } from '../ui/ComboDisplay.tsx'
-import { TypeInput } from '../ui/TypeInput.tsx'
 import { FloatScoreContainer, useFloatScore } from '../ui/FloatScore.tsx'
 import { useGameStore, useCurrentWord, useComboLevel, useMultiplier } from '../../stores/gameStore.ts'
 import { useTimer } from '../../hooks/useTimer.ts'
+import {
+  createTypingState, processKey, getDisplayRomaji, getTypedLength,
+  type TypingState,
+} from '../../lib/romajiEngine.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 
@@ -16,7 +19,6 @@ interface PlayScreenProps {
 }
 
 export function PlayScreen({ audio }: PlayScreenProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -26,7 +28,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const pending = useGameStore(s => s.pending)
   const timerMax = useGameStore(s => s.timerMax)
   const activeWords = useGameStore(s => s.activeWords)
-  const checkAnswer = useGameStore(s => s.checkAnswer)
+  const completeWord = useGameStore(s => s.completeWord)
   const handleTimeoutAction = useGameStore(s => s.handleTimeout)
   const advance = useGameStore(s => s.advance)
   const setScreen = useGameStore(s => s.setScreen)
@@ -41,8 +43,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const [timerPct, setTimerPct] = useState(1)
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
   const [flavorText, setFlavorText] = useState('')
-  const [typedLength, setTypedLength] = useState(0)
+  const [typingState, setTypingState] = useState<TypingState | null>(null)
 
+  // Derived display values
+  const displayRomaji = typingState ? getDisplayRomaji(typingState) : (word?.romaji ?? '')
+  const typedLength = typingState ? getTypedLength(typingState) : 0
+
+  // ── Advance to next word or end ──
   const advanceWord = useCallback(() => {
     const gameOver = advance()
     if (gameOver) {
@@ -51,16 +58,10 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       startWordTimer()
       setInputState('neutral')
       setFlavorText('')
-      setTypedLength(0)
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.value = ''
-          inputRef.current.focus()
-        }
-      }, 50)
     }
   }, [advance, startWordTimer, setScreen])
 
+  // ── Timeout handler ──
   const onTimeout = useCallback(() => {
     handleTimeoutAction()
     audio.timeout()
@@ -68,14 +69,12 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     if (word) {
       setFlavorText(`時間切れ… 正解：${word.romaji}`)
     }
-    // Shake
     if (containerRef.current) {
       containerRef.current.style.animation = 'shakeMiss 0.4s ease-out'
       containerRef.current.addEventListener('animationend', () => {
         if (containerRef.current) containerRef.current.style.animation = ''
       }, { once: true })
     }
-    // Particles
     if (cardRef.current && particles) {
       const rect = cardRef.current.getBoundingClientRect()
       particles.emitWrong(rect.left + rect.width / 2, rect.top + rect.height / 3)
@@ -88,7 +87,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     onTimeout,
   })
 
-  // Start timer on mount and when word changes
+  // ── Initialize / reset on word change ──
   useEffect(() => {
     startWordTimer()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
@@ -99,40 +98,28 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       setTimerPct(1)
       setInputState('neutral')
       setFlavorText('')
-      setTypedLength(0)
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.value = ''
-          inputRef.current.focus()
-        }
-      }, 50)
     }
     return () => stopTimerTick()
   }, [wordIdx, timerMax]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleInput = useCallback((e: React.FormEvent<HTMLInputElement>) => {
-    if (pending) return
-    const typed = (e.target as HTMLInputElement).value.toLowerCase()
-
-    // Update typed length for visual progress
-    if (word && word.romaji.startsWith(typed)) {
-      setTypedLength(typed.length)
+  // Create typing state when word changes
+  useEffect(() => {
+    if (word) {
+      setTypingState(createTypingState(word.kana))
     }
+  }, [word])
 
-    const result = checkAnswer(typed)
-    if (!result) return
-
+  // ── Handle word completion ──
+  const handleWordComplete = useCallback(() => {
+    const result = completeWord()
     stopTimerTick()
     audio.correct()
     if (result.combo >= 3) audio.combo(result.combo)
 
-    if (inputRef.current) inputRef.current.value = ''
     setInputState('correct')
     setFlavorText(`+${result.pts}pts　${result.flavor}`)
-    setTypedLength(word?.romaji.length ?? 0)
     spawnFloat(`+${result.pts}`)
 
-    // Particles
     if (cardRef.current && particles) {
       const rect = cardRef.current.getBoundingClientRect()
       const cx = rect.left + rect.width / 2
@@ -142,16 +129,41 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     }
 
     setTimeout(advanceWord, 1200)
-  }, [pending, word, checkAnswer, stopTimerTick, audio, particles, spawnFloat, advanceWord])
+  }, [completeWord, stopTimerTick, audio, particles, spawnFloat, advanceWord])
 
-  // Keypress sound
+  // ── Keydown handler — romaji engine ──
   useEffect(() => {
-    const handler = () => {
-      if (!pending) audio.keyPress()
+    const handler = (e: KeyboardEvent) => {
+      if (pending || !typingState) return
+
+      // Only single printable chars (letters + apostrophe)
+      if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
+      const key = e.key.toLowerCase()
+      if (!/[a-z']/.test(key)) return
+
+      e.preventDefault()
+
+      const { state: newState, result } = processKey(typingState, key)
+
+      if (result === 'accept') {
+        setTypingState(newState)
+        audio.keyPress()
+      } else if (result === 'complete') {
+        setTypingState(newState)
+        handleWordComplete()
+      } else {
+        // reject — error feedback
+        audio.wrongKey()
+        setInputState('wrong')
+        setTimeout(() => {
+          if (!pending) setInputState('neutral')
+        }, 200)
+      }
     }
+
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [audio, pending])
+  }, [typingState, pending, audio, handleWordComplete])
 
   if (!word) return null
 
@@ -178,17 +190,34 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
       <div ref={cardRef}>
         <Card className="mb-3">
-          <WordDisplay word={word.word} romaji={word.romaji} typedLength={typedLength} />
+          <WordDisplay word={word.word} romaji={displayRomaji} typedLength={typedLength} />
           <ComboDisplay combo={combo} level={comboLevel} multiplier={multiplier} />
         </Card>
       </div>
 
-      <TypeInput
-        ref={inputRef}
-        state={inputState}
-        placeholder="ローマ字で入力…"
-        onInput={handleInput}
-      />
+      {/* Visual input indicator — shows typed romaji */}
+      <div
+        className={`
+          w-full backdrop-blur-sm bg-white/5 text-white
+          border-[1.5px] rounded-xl py-3.5 px-4
+          font-mono text-xl text-center
+          transition-all duration-200 min-h-[56px]
+          flex items-center justify-center
+          ${inputState === 'correct'
+            ? 'border-emerald-400 animate-pulse-correct'
+            : inputState === 'wrong'
+              ? 'border-red-400 animate-shake-miss'
+              : 'border-white/20'
+          }
+        `}
+      >
+        <span className="text-white/80">
+          {typingState
+            ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
+            : ''}
+        </span>
+        <span className="animate-pulse text-white/30 ml-0.5">|</span>
+      </div>
 
       <div className="flex justify-between items-center mt-3 min-h-8 gap-2 relative">
         <span className="text-xs text-white/60 italic flex-1 text-left">

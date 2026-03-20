@@ -26,12 +26,10 @@ interface GameState extends PersistedState {
   screen: Screen
   setScreen: (s: Screen) => void
 
-  // Course
   activeCourseId: CourseId | null
   activeWords: Word[]
   timerMultiplier: number
 
-  // Game state
   wordIdx: number
   score: number
   combo: number
@@ -46,12 +44,11 @@ interface GameState extends PersistedState {
   // Actions
   startGame: (courseId: CourseId) => void
   startWordTimer: () => void
-  checkAnswer: (typed: string) => CorrectResult | null
+  completeWord: () => CorrectResult
   handleTimeout: () => void
-  advance: () => boolean // returns true if game is over
+  advance: () => boolean
   getResults: () => ReturnType<typeof computeResults>
 
-  // Persisted actions
   saveScore: (entry: HighScoreEntry) => number
   toggleTheme: () => void
   toggleSound: () => boolean
@@ -117,12 +114,9 @@ export const useGameStore = create<GameState>()(
         })
       },
 
-      checkAnswer: (typed) => {
+      completeWord: () => {
         const state = get()
-        if (state.pending) return null
         const word = state.activeWords[state.wordIdx]
-        if (typed !== word.romaji) return null
-
         const elapsed = performance.now() - state.wordStartTime
         const newCombo = state.combo + 1
         const { pts, multiplier } = calcScore(state.timerMax, elapsed, newCombo)
@@ -169,9 +163,7 @@ export const useGameStore = create<GameState>()(
       advance: () => {
         const state = get()
         const nextIdx = state.wordIdx + 1
-        if (nextIdx >= state.activeWords.length) {
-          return true // game over
-        }
+        if (nextIdx >= state.activeWords.length) return true
         set({ wordIdx: nextIdx })
         return false
       },
@@ -225,7 +217,6 @@ export const useGameStore = create<GameState>()(
   ),
 )
 
-// Selector helpers
 export const useScreen = () => useGameStore(s => s.screen)
 export const useTheme = () => useGameStore(s => s.theme)
 export const useComboLevel = () => useGameStore(s => getComboLevel(s.combo))
