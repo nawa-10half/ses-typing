@@ -14,7 +14,7 @@ const levelColors: Record<string, string> = {
 }
 
 export function ComboDisplay({ combo, level, multiplier }: ComboDisplayProps) {
-  if (combo < 3) return <div className="min-h-9 mt-2" />
+  if (combo < 30) return <div className="min-h-9 mt-2" />
 
   return (
     <div className="min-h-9 mt-2 flex items-center justify-center gap-2">

@@ -29,6 +29,8 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const timerMax = useGameStore(s => s.timerMax)
   const activeWords = useGameStore(s => s.activeWords)
   const completeWord = useGameStore(s => s.completeWord)
+  const incrementCombo = useGameStore(s => s.incrementCombo)
+  const resetCombo = useGameStore(s => s.resetCombo)
   const handleTimeoutAction = useGameStore(s => s.handleTimeout)
   const advance = useGameStore(s => s.advance)
   const setScreen = useGameStore(s => s.setScreen)
@@ -114,7 +116,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     const result = completeWord()
     stopTimerTick()
     audio.correct()
-    if (result.combo >= 3) audio.combo(result.combo)
+    if (result.combo >= 30) audio.combo(result.combo)
 
     setInputState('correct')
     setFlavorText(`+${result.pts}pts　${result.flavor}`)
@@ -125,7 +127,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       const cx = rect.left + rect.width / 2
       const cy = rect.top + rect.height / 3
       particles.emitCorrect(cx, cy)
-      if (result.combo >= 3) particles.emitCombo(cx, cy, result.combo)
+      if (result.combo >= 30) particles.emitCombo(cx, cy, result.combo)
     }
 
     setTimeout(advanceWord, 1200)
@@ -147,12 +149,15 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
       if (result === 'accept') {
         setTypingState(newState)
+        incrementCombo()
         audio.keyPress()
       } else if (result === 'complete') {
         setTypingState(newState)
+        incrementCombo()
         handleWordComplete()
       } else {
-        // reject — error feedback
+        // reject — error feedback, combo reset
+        resetCombo()
         audio.wrongKey()
         setInputState('wrong')
         setTimeout(() => {

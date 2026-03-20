@@ -44,6 +44,8 @@ interface GameState extends PersistedState {
   // Actions
   startGame: (course: Course) => void
   startWordTimer: () => void
+  incrementCombo: () => void
+  resetCombo: () => void
   completeWord: () => CorrectResult
   handleTimeout: () => void
   advance: () => boolean
@@ -113,32 +115,35 @@ export const useGameStore = create<GameState>()(
         })
       },
 
+      incrementCombo: () => set(state => ({
+        combo: state.combo + 1,
+        maxCombo: Math.max(state.maxCombo, state.combo + 1),
+      })),
+
+      resetCombo: () => set({ combo: 0 }),
+
       completeWord: () => {
         const state = get()
         const word = state.activeWords[state.wordIdx]
         const elapsed = performance.now() - state.wordStartTime
-        const newCombo = state.combo + 1
-        const { pts, multiplier } = calcScore(state.timerMax, elapsed, newCombo)
-        const newMaxCombo = Math.max(state.maxCombo, newCombo)
+        const { pts, multiplier } = calcScore(state.timerMax, elapsed, state.combo)
 
         const entry: LogEntry = {
           word: word.word,
           ok: true,
           pts,
-          combo: newCombo,
+          combo: state.combo,
           time: Math.round(elapsed),
         }
 
         set({
           pending: true,
-          combo: newCombo,
-          maxCombo: newMaxCombo,
           score: state.score + pts,
           correct: state.correct + 1,
           log: [...state.log, entry],
         })
 
-        return { pts, combo: newCombo, multiplier, elapsed, flavor: word.flavor }
+        return { pts, combo: state.combo, multiplier, elapsed, flavor: word.flavor }
       },
 
       handleTimeout: () => {
