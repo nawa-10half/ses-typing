@@ -134,27 +134,50 @@ export class ParticleSystem {
   }
 
   emitCorrect(x: number, y: number): void {
-    this.burst(x, y, 20, {
-      colors: ['#1D9E75', '#34d399', '#6ee7b7', '#a7f3d0'],
-      speed: 4, life: 0.6, size: 5, gravity: 0.12,
+    this.burst(x, y, 30, {
+      colors: ['#1D9E75', '#34d399', '#6ee7b7', '#a7f3d0', '#10b981'],
+      speed: 5, life: 0.8, size: 6, gravity: 0.1,
+    })
+    // Extra sparkle ring
+    this.burst(x, y, 8, {
+      colors: ['#ffffff', '#d1fae5'],
+      speed: 2, life: 0.5, size: 2, gravity: 0.02,
     })
   }
 
   emitWrong(x: number, y: number): void {
-    this.burst(x, y, 12, {
+    this.burst(x, y, 15, {
       colors: ['#E24B4A', '#f87171', '#fca5a5'],
-      speed: 2, life: 0.4, size: 3, gravity: 0.06,
+      speed: 3, life: 0.5, size: 4, gravity: 0.08,
     })
   }
 
   emitCombo(x: number, y: number, level: number): void {
-    const count = 15 + level * 5
-    const colors = level >= 9
-      ? ['#a855f7', '#c084fc', '#e879f9', '#f0abfc']
-      : level >= 6
-        ? ['#ef4444', '#f97316', '#f59e0b']
-        : ['#f59e0b', '#fbbf24', '#fde68a']
-    this.burst(x, y, count, { colors, speed: 3 + level * 0.3, life: 0.7, size: 4, gravity: 0.1 })
+    const count = 25 + level * 3
+    const colors = level >= 80
+      ? ['#a855f7', '#c084fc', '#e879f9', '#f0abfc', '#ec4899', '#f43f5e']
+      : level >= 50
+        ? ['#ef4444', '#f97316', '#f59e0b', '#ec4899']
+        : level >= 30
+          ? ['#ef4444', '#f97316', '#f59e0b']
+          : ['#f59e0b', '#fbbf24', '#fde68a']
+    this.burst(x, y, count, { colors, speed: 4 + level * 0.05, life: 0.9, size: 5, gravity: 0.08 })
+  }
+
+  emitScreenFlash(): void {
+    for (let i = 0; i < 40; i++) {
+      this.spawn({
+        x: Math.random() * this.w,
+        y: Math.random() * this.h * 0.6,
+        vx: (Math.random() - 0.5) * 2,
+        vy: Math.random() * 1 + 0.5,
+        life: 1 + Math.random() * 1.5,
+        size: 2 + Math.random() * 3,
+        color: ['#a855f7', '#c084fc', '#818cf8', '#e879f9'][Math.floor(Math.random() * 4)],
+        gravity: 0.02, friction: 0.99,
+        type: 'circle', rotation: 0, rotationSpeed: 0,
+      })
+    }
   }
 
   emitAmbient(): void {

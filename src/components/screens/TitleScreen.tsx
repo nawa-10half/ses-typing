@@ -31,7 +31,8 @@ export function TitleScreen() {
         <p className="text-[10px] text-white/40 tracking-[3px] uppercase mb-2">
           SES EXPERIENCE TYPING
         </p>
-        <h1 className="text-[32px] font-semibold mb-2.5 tracking-tight">
+        <h1 className="text-[36px] font-extrabold mb-3 tracking-tight text-gradient-rank
+          drop-shadow-[0_0_20px_rgba(129,140,248,0.2)]">
           SESタイピング
         </h1>
         <p className="text-[13px] text-white/60 leading-[1.9] mb-8">

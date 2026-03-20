@@ -34,8 +34,9 @@ export function FloatScoreContainer({ items }: { items: FloatItem[] }) {
 function FloatScoreItem({ text }: { text: string }) {
   return (
     <span
-      className="absolute right-4 -top-2 text-sm font-bold text-emerald-400
-        pointer-events-none animate-float-score"
+      className="absolute right-4 -top-2 text-base font-extrabold
+        pointer-events-none animate-float-score
+        text-gradient-score drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]"
     >
       {text}
     </span>

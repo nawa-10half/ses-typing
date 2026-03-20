@@ -22,11 +22,13 @@ export default function App() {
     <div className={`
       min-h-screen flex items-start justify-center
       px-4 pt-8 pb-16 overflow-x-hidden relative
+      bg-mesh
       ${theme === 'dark' ? 'bg-bg-dark text-white' : 'bg-bg-light text-gray-900'}
     `}>
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <div className="orb orb-3" />
+      <div className="orb orb-4" />
 
       <ParticleCanvas />
       <ControlBar audio={audio} />

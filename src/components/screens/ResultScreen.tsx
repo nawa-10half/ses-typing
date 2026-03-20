@@ -78,10 +78,10 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         <p className="text-[10px] text-white/40 tracking-[3px] uppercase mb-2">
           {courseName}
         </p>
-        <h2 className="text-[28px] font-semibold animate-stage-title">
+        <h2 className="text-[32px] font-extrabold animate-stage-title text-gradient-rank animate-neon-pulse">
           {results.rank.rank}
         </h2>
-        <p className="text-[13px] text-white/60 leading-[1.9] mb-6 mt-1">
+        <p className="text-[13px] text-white/50 leading-[1.9] mb-6 mt-2">
           {results.rank.comment}
         </p>
 

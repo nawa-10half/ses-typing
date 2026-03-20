@@ -46,6 +46,8 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
   const [flavorText, setFlavorText] = useState('')
   const [typingState, setTypingState] = useState<TypingState | null>(null)
+  const [cardGlow, setCardGlow] = useState(false)
+  const [scorePop, setScorePop] = useState(false)
 
   // Derived display values
   const displayRomaji = typingState ? getDisplayRomaji(typingState) : ''
@@ -121,6 +123,10 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     setInputState('correct')
     setFlavorText(`+${result.pts}pts　${result.flavor}`)
     spawnFloat(`+${result.pts}`)
+    setCardGlow(true)
+    setScorePop(true)
+    setTimeout(() => setCardGlow(false), 600)
+    setTimeout(() => setScorePop(false), 300)
 
     if (cardRef.current && particles) {
       const rect = cardRef.current.getBoundingClientRect()
@@ -194,7 +200,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       <TimerBar pct={timerPct} />
 
       <div ref={cardRef}>
-        <Card className="mb-3">
+        <Card className="mb-3" glow={cardGlow}>
           <WordDisplay word={word.word} romaji={displayRomaji} typedLength={typedLength} />
           <ComboDisplay combo={combo} level={comboLevel} multiplier={multiplier} />
         </Card>
@@ -229,7 +235,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
           {flavorText}
         </span>
         <span className="text-[11px] text-white/40 whitespace-nowrap tracking-wide">SCORE</span>
-        <span className="text-[22px] font-semibold min-w-[52px] text-right">{score}</span>
+        <span className={`text-[22px] font-bold min-w-[52px] text-right ${scorePop ? 'animate-score-pop text-gradient-score' : ''}`}>{score}</span>
         <FloatScoreContainer items={floatItems} />
       </div>
     </motion.div>

@@ -39,5 +39,9 @@ export function useParticleSystem(canvasRef: React.RefObject<HTMLCanvasElement |
     systemRef.current?.confetti(count)
   }, [])
 
-  return { emitCorrect, emitWrong, emitCombo, confetti }
+  const screenFlash = useCallback(() => {
+    systemRef.current?.emitScreenFlash()
+  }, [])
+
+  return { emitCorrect, emitWrong, emitCombo, confetti, screenFlash }
 }
