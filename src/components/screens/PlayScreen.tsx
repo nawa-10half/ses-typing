@@ -214,6 +214,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
           font-mono text-xl text-center
           transition-all duration-200 min-h-[56px]
           flex items-center justify-center
+          break-all leading-relaxed
           ${inputState === 'correct'
             ? 'border-emerald-400 animate-pulse-correct'
             : inputState === 'wrong'

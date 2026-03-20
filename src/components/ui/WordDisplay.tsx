@@ -26,7 +26,7 @@ export function WordDisplay({ word, romaji, typedLength }: WordDisplayProps) {
       >
         {word}
       </div>
-      <div className="text-lg font-mono tracking-wider mb-1 min-h-[28px]">
+      <div className="text-lg font-mono tracking-wider mb-1 min-h-[28px] break-all leading-relaxed">
         {romaji.split('').map((char, i) => (
           <span
             key={`${word}-${i}`}
