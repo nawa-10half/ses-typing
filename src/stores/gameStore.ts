@@ -1,10 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type {
-  Screen, Word, LogEntry, CorrectResult,
+  Screen, Word, Course, LogEntry, CorrectResult,
   HighScoreEntry, PlayerIdentity, CourseId,
 } from '../types/game.ts'
-import { COURSES } from '../lib/constants.ts'
 import {
   calcTimerMax, calcScore, getMultiplier, getComboLevel,
   computeResults,
@@ -42,7 +41,7 @@ interface GameState extends PersistedState {
   pending: boolean
 
   // Actions
-  startGame: (courseId: CourseId) => void
+  startGame: (course: Course) => void
   startWordTimer: () => void
   completeWord: () => CorrectResult
   handleTimeout: () => void
@@ -82,10 +81,9 @@ export const useGameStore = create<GameState>()(
       timerMax: 0,
       pending: false,
 
-      startGame: (courseId) => {
-        const course = COURSES.find(c => c.id === courseId)!
+      startGame: (course) => {
         set(state => ({
-          activeCourseId: courseId,
+          activeCourseId: course.id,
           activeWords: course.words,
           timerMultiplier: course.timerMultiplier,
           wordIdx: 0,

@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
-import { COURSES } from '../../lib/constants.ts'
 import { useGameStore } from '../../stores/gameStore.ts'
-import type { CourseId } from '../../types/game.ts'
+import { useCourses } from '../../hooks/useCourses.ts'
+import type { Course, CourseId } from '../../types/game.ts'
 
 const difficultyBadge: Record<CourseId, { label: string; color: string }> = {
   beginner: { label: '初級', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
@@ -10,8 +10,15 @@ const difficultyBadge: Record<CourseId, { label: string; color: string }> = {
   advanced: { label: '上級', color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 }
 
+const defaultBadge = { label: '—', color: 'bg-white/10 text-white/60 border-white/20' }
+
 export function TitleScreen() {
   const startGame = useGameStore(s => s.startGame)
+  const { courses } = useCourses()
+
+  const handleSelect = (course: Course) => {
+    startGame(course)
+  }
 
   return (
     <motion.div
@@ -32,12 +39,12 @@ export function TitleScreen() {
         </p>
 
         <div className="flex flex-col gap-3">
-          {COURSES.map(course => {
-            const badge = difficultyBadge[course.id]
+          {courses.map(course => {
+            const badge = difficultyBadge[course.id] ?? defaultBadge
             return (
               <button
                 key={course.id}
-                onClick={() => startGame(course.id)}
+                onClick={() => handleSelect(course)}
                 className="
                   group relative w-full text-left
                   backdrop-blur-sm bg-white/[0.03] hover:bg-white/[0.08]

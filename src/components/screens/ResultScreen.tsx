@@ -9,7 +9,7 @@ import { WordLog } from '../ui/WordLog.tsx'
 import { RankingBoard } from '../ui/RankingBoard.tsx'
 import { showToast } from '../ui/Toast.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
-import { COURSES } from '../../lib/constants.ts'
+import { useCourses } from '../../hooks/useCourses.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 
@@ -24,9 +24,11 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const setScreen = useGameStore(s => s.setScreen)
   const activeCourseId = useGameStore(s => s.activeCourseId)
   const particles = useParticles()
+  const { courses } = useCourses()
 
   const results = useMemo(() => getResults(), []) // eslint-disable-line react-hooks/exhaustive-deps
-  const courseName = COURSES.find(c => c.id === activeCourseId)?.name ?? ''
+  const activeCourse = courses.find(c => c.id === activeCourseId)
+  const courseName = activeCourse?.name ?? ''
 
   useEffect(() => {
     audio.gameComplete()
@@ -43,7 +45,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRetry = () => {
-    if (activeCourseId) startGame(activeCourseId)
+    if (activeCourse) startGame(activeCourse)
   }
 
   const handleShare = () => {
