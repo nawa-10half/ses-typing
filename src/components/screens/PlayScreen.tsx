@@ -46,7 +46,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const [typingState, setTypingState] = useState<TypingState | null>(null)
 
   // Derived display values
-  const displayRomaji = typingState ? getDisplayRomaji(typingState) : (word?.romaji ?? '')
+  const displayRomaji = typingState ? getDisplayRomaji(typingState) : ''
   const typedLength = typingState ? getTypedLength(typingState) : 0
 
   // ── Advance to next word or end ──
@@ -67,7 +67,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     audio.timeout()
     setInputState('wrong')
     if (word) {
-      setFlavorText(`時間切れ… 正解：${word.romaji}`)
+      setFlavorText(`時間切れ… 正解：${getDisplayRomaji(createTypingState(word.kana))}`)
     }
     if (containerRef.current) {
       containerRef.current.style.animation = 'shakeMiss 0.4s ease-out'
@@ -139,7 +139,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       // Only single printable chars (letters + apostrophe)
       if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
       const key = e.key.toLowerCase()
-      if (!/[a-z']/.test(key)) return
+      if (!/[a-z'\-]/.test(key)) return
 
       e.preventDefault()
 

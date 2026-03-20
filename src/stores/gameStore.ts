@@ -8,6 +8,7 @@ import {
   calcTimerMax, calcScore, getMultiplier, getComboLevel,
   computeResults,
 } from '../lib/gameLogic.ts'
+import { getDefaultRomaji } from '../lib/romajiEngine.ts'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -104,7 +105,7 @@ export const useGameStore = create<GameState>()(
       startWordTimer: () => {
         const { wordIdx, activeWords, timerMultiplier } = get()
         const word = activeWords[wordIdx]
-        const timerMax = calcTimerMax(word.romaji.length, timerMultiplier)
+        const timerMax = calcTimerMax(getDefaultRomaji(word.kana).length, timerMultiplier)
         set({
           timerMax,
           wordStartTime: performance.now(),

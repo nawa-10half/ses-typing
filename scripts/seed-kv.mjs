@@ -1,6 +1,13 @@
-import type { RankInfo, Course } from '../types/game.ts'
+/**
+ * KV シードスクリプト
+ *
+ * 使い方:
+ *   1. JSON生成:   node scripts/seed-kv.mjs > /tmp/courses.json
+ *   2. KVに投入:    npx wrangler kv key put courses --binding KV --path /tmp/courses.json
+ *   3. ローカル確認: npx wrangler kv key put courses --binding KV --path /tmp/courses.json --local
+ */
 
-export const COURSES: Course[] = [
+const courses = [
   {
     id: 'beginner',
     name: '初級SESコース',
@@ -57,11 +64,4 @@ export const COURSES: Course[] = [
   },
 ]
 
-export const RANKS: RankInfo[] = [
-  { min: 3600, rank: '永久常駐の神', comment: 'もはやSES沼の主。誰も逃がさない' },
-  { min: 3000, rank: '光速タイパー', comment: 'その指で議事録を量産してほしい' },
-  { min: 2400, rank: 'スピードタイパー', comment: 'このスピードでスキルシートも更新して' },
-  { min: 1800, rank: '熟練エンジニア', comment: 'あるある全部わかるやつ' },
-  { min: 1200, rank: '沼に片足突っ込み中', comment: 'まだ浅瀬。引き返せ…引き返せるのか？' },
-  { min: 0, rank: 'SES沼の住人', comment: '中抜き構造に完全に飲み込まれた' },
-]
+console.log(JSON.stringify(courses, null, 2))

@@ -84,18 +84,11 @@ function kanaVowel(ch: string): string {
   return 'あ' // a-row + fallback
 }
 
-// Replace ー with the vowel kana of the preceding character
-function expandChoon(kana: string): string {
-  let result = ''
-  for (let i = 0; i < kana.length; i++) {
-    if (kana[i] === 'ー' && i > 0) {
-      const prev = result[result.length - 1]
-      result += kanaVowel(prev)
-    } else {
-      result += kana[i]
-    }
-  }
-  return result
+// Get the romaji vowel letter for a kana character
+function kanaVowelRomaji(ch: string): string {
+  const v = kanaVowel(ch)
+  const map: Record<string, string> = { 'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o' }
+  return map[v] ?? 'a'
 }
 
 // ─── Parse kana string into chunks ───
@@ -113,11 +106,20 @@ function lookupNextKana(kana: string, start: number): { kanaStr: string; options
 }
 
 export function parseKana(rawKana: string): KanaChunk[] {
-  const kana = expandChoon(rawKana)
+  const kana = rawKana
   const chunks: KanaChunk[] = []
   let i = 0
 
   while (i < kana.length) {
+    // ── ー: hyphen or doubled vowel ──
+    if (kana[i] === 'ー' && i > 0) {
+      const prevKana = kana[i - 1]
+      const vowel = kanaVowelRomaji(prevKana)
+      chunks.push({ kana: 'ー', options: ['-', vowel] })
+      i++
+      continue
+    }
+
     // ── っ: merge with next kana, double first consonant ──
     if (kana[i] === 'っ') {
       const next = lookupNextKana(kana, i + 1)
