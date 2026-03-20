@@ -64,8 +64,8 @@ export class AudioEngine {
   }
 
   keyPress(): void {
-    this._tone(600 + Math.random() * 400, 0.04, 'square', 0.06)
-    this._noise(0.02, 0.03)
+    this._tone(600 + Math.random() * 400, 0.04, 'square', 0.12)
+    this._noise(0.02, 0.06)
   }
 
   correct(): void {
