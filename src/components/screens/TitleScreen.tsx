@@ -71,7 +71,7 @@ export function TitleScreen() {
                     </div>
                   </div>
                   <div className="text-right mr-4">
-                    <p className="text-[18px] font-semibold text-white/80">{course.words.length}</p>
+                    <p className="text-[18px] font-semibold text-white/80">{course.wordsPerGame}<span className="text-[11px] text-white/30">/{course.words.length}</span></p>
                     <p className="text-[9px] text-white/30 tracking-wider">WORDS</p>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ export interface Course {
   description: string
   words: Word[]
   timerMultiplier: number
+  wordsPerGame: number
 }
 
 export type CourseId = 'beginner' | 'intermediate' | 'advanced'

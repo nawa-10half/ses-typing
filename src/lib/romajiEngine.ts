@@ -68,9 +68,14 @@ const KANA_MAP: Record<string, string[]> = {
   'じょ': ['jo', 'jyo', 'zyo', 'jilyo', 'jixyo', 'zilyo', 'zixyo'],
   'びゃ': ['bya'], 'びゅ': ['byu'], 'びょ': ['byo'],
 
+  // Small kana
+  'ぁ': ['xa', 'la'], 'ぃ': ['xi', 'li'], 'ぅ': ['xu', 'lu'], 'ぇ': ['xe', 'le'], 'ぉ': ['xo', 'lo'],
+  'ゃ': ['xya', 'lya'], 'ゅ': ['xyu', 'lyu'], 'ょ': ['xyo', 'lyo'],
+
   // Special katakana-origin compounds
   'てぃ': ['thi', 'texi', 'teli'],
   'でぃ': ['dhi', 'dexi', 'deli'],
+  'じぇ': ['je', 'jie', 'zye'],
   'ふぁ': ['fa', 'fuxa', 'hula'],
   'ふぃ': ['fi', 'fuxi', 'huli'],
   'ふぇ': ['fe', 'fuxe', 'hule'],

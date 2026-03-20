@@ -85,9 +85,11 @@ export const useGameStore = create<GameState>()(
       pending: false,
 
       startGame: (course) => {
+        const shuffled = [...course.words].sort(() => Math.random() - 0.5)
+        const selected = shuffled.slice(0, course.wordsPerGame)
         set(state => ({
           activeCourseId: course.id,
-          activeWords: course.words,
+          activeWords: selected,
           timerMultiplier: course.timerMultiplier,
           wordIdx: 0,
           score: 0,
