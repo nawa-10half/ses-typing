@@ -2,15 +2,18 @@ import type { LogEntry, RankInfo, GameResult, ComboLevel, CourseId } from '../ty
 import { RANKS } from './constants.ts'
 
 export function getMultiplier(combo: number): number {
-  if (combo < 30) return 1
-  return 1 + Math.floor(combo / 30) * 0.5
+  if (combo >= 80) return 3.0
+  if (combo >= 50) return 2.5
+  if (combo >= 30) return 2.0
+  if (combo >= 15) return 1.5
+  return 1.0
 }
 
 export function getComboLevel(combo: number): ComboLevel {
-  if (combo >= 120) return 'max'
-  if (combo >= 90) return '3'
-  if (combo >= 60) return '2'
-  if (combo >= 30) return '1'
+  if (combo >= 80) return 'max'
+  if (combo >= 50) return '3'
+  if (combo >= 30) return '2'
+  if (combo >= 15) return '1'
   return '0'
 }
 

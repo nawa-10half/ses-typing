@@ -116,7 +116,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     const result = completeWord()
     stopTimerTick()
     audio.correct()
-    if (result.combo >= 30) audio.combo(result.combo)
+    if (result.combo >= 15) audio.combo(result.combo)
 
     setInputState('correct')
     setFlavorText(`+${result.pts}pts　${result.flavor}`)
@@ -127,7 +127,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       const cx = rect.left + rect.width / 2
       const cy = rect.top + rect.height / 3
       particles.emitCorrect(cx, cy)
-      if (result.combo >= 30) particles.emitCombo(cx, cy, result.combo)
+      if (result.combo >= 15) particles.emitCombo(cx, cy, result.combo)
     }
 
     setTimeout(advanceWord, 1200)
