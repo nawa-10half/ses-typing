@@ -32,7 +32,7 @@ export function TitleScreen() {
           SES EXPERIENCE TYPING
         </p>
         <h1 className="text-[32px] font-semibold mb-2.5 tracking-tight">
-          SES沼タイピング
+          SESタイピング
         </h1>
         <p className="text-[13px] text-white/60 leading-[1.9] mb-8">
           SESあるあるの単語を<br />ローマ字で打ち抜け

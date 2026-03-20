@@ -50,7 +50,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
 
   const handleShare = () => {
     const text = [
-      '\uD83C\uDFAE SES沼タイピング',
+      '\uD83C\uDFAE SESタイピング',
       `\uD83D\uDCCB ${courseName}`,
       '',
       `\uD83C\uDFC6 ${results.rank.rank}`,
@@ -58,7 +58,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
       `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
       '',
-      '#SES沼タイピング #タイピングゲーム',
+      '#SESタイピング #タイピングゲーム',
     ].join('\n')
 
     navigator.clipboard.writeText(text).then(
