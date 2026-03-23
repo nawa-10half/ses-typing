@@ -37,9 +37,11 @@ export interface GameResult {
   total: number
   log: LogEntry[]
   rank: RankInfo
-  avgWpm: number
+  kps: number
   totalTime: number
   courseId: CourseId
+  totalKeystrokes: number
+  missKeystrokes: number
 }
 
 export interface CorrectResult {

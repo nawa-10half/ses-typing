@@ -43,16 +43,23 @@ export function computeResults(
   gameStartTime: number,
   totalWords: number,
   courseId: CourseId,
+  totalKeystrokes: number,
+  missKeystrokes: number,
 ): GameResult {
   const totalTime = performance.now() - gameStartTime
+  const typingTime = log.filter(l => l.ok).reduce((a, l) => a + l.time, 0)
   const correct = log.filter(l => l.ok).length
-  const acc = Math.round((correct / totalWords) * 100)
+  const correctKeystrokes = totalKeystrokes - missKeystrokes
+  const acc = totalKeystrokes > 0
+    ? Math.round((correctKeystrokes / totalKeystrokes) * 100)
+    : 0
   const maxCombo = Math.max(...log.map(l => l.combo), 0)
-  const avgWpm = correct > 0
-    ? Math.round(log.filter(l => l.ok).reduce((a, l) => a + l.word.length, 0) / (totalTime / 60000))
+  const typingSeconds = typingTime / 1000
+  const kps = typingSeconds > 0
+    ? Math.round((correctKeystrokes / typingSeconds) * 10) / 10
     : 0
   const score = log.reduce((a, l) => a + l.pts, 0)
   const rank = getRank(score, totalWords)
 
-  return { score, accuracy: acc, maxCombo, correct, total: totalWords, log, rank, avgWpm, totalTime, courseId }
+  return { score, accuracy: acc, maxCombo, correct, total: totalWords, log, rank, kps, totalTime, courseId, totalKeystrokes, missKeystrokes }
 }

@@ -35,6 +35,8 @@ interface GameState extends PersistedState {
   combo: number
   maxCombo: number
   correct: number
+  totalKeystrokes: number
+  missKeystrokes: number
   log: LogEntry[]
   gameStartTime: number
   wordStartTime: number
@@ -78,6 +80,8 @@ export const useGameStore = create<GameState>()(
       combo: 0,
       maxCombo: 0,
       correct: 0,
+      totalKeystrokes: 0,
+      missKeystrokes: 0,
       log: [],
       gameStartTime: 0,
       wordStartTime: 0,
@@ -96,6 +100,8 @@ export const useGameStore = create<GameState>()(
           combo: 0,
           maxCombo: 0,
           correct: 0,
+          totalKeystrokes: 0,
+          missKeystrokes: 0,
           log: [],
           gameStartTime: performance.now(),
           wordStartTime: 0,
@@ -120,9 +126,14 @@ export const useGameStore = create<GameState>()(
       incrementCombo: () => set(state => ({
         combo: state.combo + 1,
         maxCombo: Math.max(state.maxCombo, state.combo + 1),
+        totalKeystrokes: state.totalKeystrokes + 1,
       })),
 
-      resetCombo: () => set({ combo: 0 }),
+      resetCombo: () => set(state => ({
+        combo: 0,
+        totalKeystrokes: state.totalKeystrokes + 1,
+        missKeystrokes: state.missKeystrokes + 1,
+      })),
 
       completeWord: () => {
         const state = get()
@@ -181,6 +192,8 @@ export const useGameStore = create<GameState>()(
           state.gameStartTime,
           state.activeWords.length,
           state.activeCourseId!,
+          state.totalKeystrokes,
+          state.missKeystrokes,
         )
       },
 

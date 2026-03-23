@@ -55,6 +55,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       '',
       `\uD83C\uDFC6 ${results.rank.rank}`,
       `\uD83D\uDCCA Score: ${results.score}`,
+      `\u26A1 Speed: ${results.kps} 打/秒`,
       `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
       `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
       '',
@@ -88,6 +89,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         <MetricGrid
           metrics={[
             { label: 'SCORE', value: results.score, large: true },
+            { label: 'SPEED', value: `${results.kps} 打/秒`, large: true },
             { label: 'ACCURACY', value: `${results.accuracy}%`, large: true },
             { label: 'MAX COMBO', value: results.maxCombo, large: true },
           ]}
