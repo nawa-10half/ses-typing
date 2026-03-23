@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
 import { Button } from '../ui/Button.tsx'
@@ -7,6 +7,7 @@ import { SpeedChart } from '../ui/SpeedChart.tsx'
 import { HighScoreList } from '../ui/HighScoreList.tsx'
 import { WordLog } from '../ui/WordLog.tsx'
 import { RankingBoard } from '../ui/RankingBoard.tsx'
+import { NicknameDialog } from '../ui/NicknameDialog.tsx'
 import { showToast } from '../ui/Toast.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
@@ -23,6 +24,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const saveScore = useGameStore(s => s.saveScore)
   const startGame = useGameStore(s => s.startGame)
   const setScreen = useGameStore(s => s.setScreen)
+  const setNickname = useGameStore(s => s.setNickname)
   const activeCourseId = useGameStore(s => s.activeCourseId)
   const player = useGameStore(s => s.player)
   const particles = useParticles()
@@ -32,6 +34,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const activeCourse = courses.find(c => c.id === activeCourseId)
   const courseName = activeCourse?.name ?? ''
 
+  const [submitted, setSubmitted] = useState(false)
   const [submittedId, setSubmittedId] = useState<string | null>(null)
   const [globalRank, setGlobalRank] = useState<number | null>(null)
 
@@ -47,11 +50,15 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       date: new Date().toISOString().slice(0, 10),
       courseId: activeCourseId ?? undefined,
     })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // グローバルランキングに送信
+  const handleNicknameSubmit = useCallback((nickname: string) => {
+    setNickname(nickname)
+    setSubmitted(true)
+
     submitScore({
       playerId: player.id,
-      nickname: player.nickname,
+      nickname,
       score: results.score,
       accuracy: results.accuracy,
       maxCombo: results.maxCombo,
@@ -65,7 +72,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
     }).catch(() => {
       // オフラインでも問題なし
     })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [player.id, results, setNickname])
 
   const handleRetry = () => {
     if (activeCourse) startGame(activeCourse)
@@ -119,7 +126,13 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         />
 
         <SpeedChart log={results.log} />
-        <RankingBoard courseId={activeCourseId ?? undefined} highlightPlayerId={submittedId ?? undefined} />
+
+        {!submitted ? (
+          <NicknameDialog defaultValue={player.nickname} onSubmit={handleNicknameSubmit} />
+        ) : (
+          <RankingBoard courseId={activeCourseId ?? undefined} highlightPlayerId={submittedId ?? undefined} />
+        )}
+
         <HighScoreList currentScore={results.score} />
         <WordLog log={results.log} />
 
