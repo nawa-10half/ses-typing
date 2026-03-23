@@ -6,7 +6,6 @@ import { MetricGrid } from '../ui/MetricGrid.tsx'
 import { SpeedChart } from '../ui/SpeedChart.tsx'
 import { HighScoreList } from '../ui/HighScoreList.tsx'
 import { WordLog } from '../ui/WordLog.tsx'
-import { RankingBoard } from '../ui/RankingBoard.tsx'
 import { showToast } from '../ui/Toast.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
@@ -97,7 +96,6 @@ export function ResultScreen({ audio }: ResultScreenProps) {
 
         <SpeedChart log={results.log} />
         <HighScoreList currentScore={results.score} />
-        <RankingBoard />
         <WordLog log={results.log} />
 
         <div className="flex flex-col gap-2">
