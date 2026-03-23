@@ -9,8 +9,10 @@ export interface Course {
   name: string
   description: string
   words: Word[]
-  timerMultiplier: number
-  wordsPerGame: number
+  timeLimit: number        // 初期制限時間 (ms)
+  baseTimeBonus: number    // 正解時の基本加算時間 (ms)
+  monthsPerWord: number    // 1単語クリアごとの加算月数
+  wordTimerMultiplier: number // 単語別タイマーの倍率
 }
 
 export type CourseId = 'beginner' | 'intermediate' | 'advanced'
@@ -31,10 +33,11 @@ export interface RankInfo {
 
 export interface GameResult {
   score: number
+  totalMonths: number
   accuracy: number
   maxCombo: number
   correct: number
-  total: number
+  wordsAttempted: number
   log: LogEntry[]
   rank: RankInfo
   kps: number
@@ -47,7 +50,8 @@ export interface GameResult {
 export interface CorrectResult {
   pts: number
   combo: number
-  multiplier: number
+  timeBonus: number   // 加算時間 (ms)
+  months: number      // 加算月数
   elapsed: number
   flavor: string
 }

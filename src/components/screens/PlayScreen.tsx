@@ -5,12 +5,13 @@ import { TimerBar } from '../ui/TimerBar.tsx'
 import { WordDisplay } from '../ui/WordDisplay.tsx'
 import { ComboDisplay } from '../ui/ComboDisplay.tsx'
 import { FloatScoreContainer, useFloatScore } from '../ui/FloatScore.tsx'
-import { useGameStore, useCurrentWord, useComboLevel, useMultiplier } from '../../stores/gameStore.ts'
+import { useGameStore, useCurrentWord, useComboLevel } from '../../stores/gameStore.ts'
 import { useTimer } from '../../hooks/useTimer.ts'
 import {
   createTypingState, processKey, getDisplayRomaji, getTypedLength,
   type TypingState,
 } from '../../lib/romajiEngine.ts'
+import { formatMonths, msToMonths, MS_PER_MONTH, MISS_PENALTY_MS } from '../../lib/gameLogic.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 
@@ -21,57 +22,70 @@ interface PlayScreenProps {
 export function PlayScreen({ audio }: PlayScreenProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const wordTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   const wordIdx = useGameStore(s => s.wordIdx)
   const score = useGameStore(s => s.score)
   const combo = useGameStore(s => s.combo)
   const pending = useGameStore(s => s.pending)
-  const timerMax = useGameStore(s => s.timerMax)
-  const activeWords = useGameStore(s => s.activeWords)
+  const wordTimerMax = useGameStore(s => s.wordTimerMax)
+  const timeLimit = useGameStore(s => s.timeLimit)
   const completeWord = useGameStore(s => s.completeWord)
   const incrementCombo = useGameStore(s => s.incrementCombo)
   const resetCombo = useGameStore(s => s.resetCombo)
-  const handleTimeoutAction = useGameStore(s => s.handleTimeout)
+  const handleWordTimeout = useGameStore(s => s.handleWordTimeout)
   const advance = useGameStore(s => s.advance)
   const setScreen = useGameStore(s => s.setScreen)
-  const startWordTimer = useGameStore(s => s.startWordTimer)
-
+  const startNextWord = useGameStore(s => s.startNextWord)
   const word = useCurrentWord()
   const comboLevel = useComboLevel()
-  const multiplier = useMultiplier()
   const particles = useParticles()
   const { items: floatItems, spawn: spawnFloat } = useFloatScore()
 
-  const [timerPct, setTimerPct] = useState(1)
+  const [globalPct, setGlobalPct] = useState(1)
+  const [remainingMs, setRemainingMs] = useState(timeLimit)
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
   const [flavorText, setFlavorText] = useState('')
   const [typingState, setTypingState] = useState<TypingState | null>(null)
   const [cardGlow, setCardGlow] = useState(false)
   const [scorePop, setScorePop] = useState(false)
 
-  // Derived display values
   const displayRomaji = typingState ? getDisplayRomaji(typingState) : ''
   const typedLength = typingState ? getTypedLength(typingState) : 0
 
-  // ── Advance to next word or end ──
-  const advanceWord = useCallback(() => {
-    const gameOver = advance()
-    if (gameOver) {
-      setScreen('result')
-    } else {
-      startWordTimer()
-      setInputState('neutral')
-      setFlavorText('')
-    }
-  }, [advance, startWordTimer, setScreen])
+  // ── グローバルタイマー（契約期間） ──
+  const onGlobalTimeout = useCallback(() => {
+    if (wordTimerRef.current) clearTimeout(wordTimerRef.current)
+    setScreen('result')
+  }, [setScreen])
 
-  // ── Timeout handler ──
-  const onTimeout = useCallback(() => {
-    handleTimeoutAction()
+  const onGlobalTick = useCallback((pct: number, remaining: number) => {
+    setGlobalPct(pct)
+    setRemainingMs(remaining)
+  }, [])
+
+  const { start: startGlobal, stop: stopGlobal, addTime, subtractTime, getRemaining } = useTimer({
+    onTick: onGlobalTick,
+    onTimeout: onGlobalTimeout,
+  })
+
+  // ── 次の単語へ ──
+  const advanceToNext = useCallback(() => {
+    advance()
+    startNextWord()
+    setInputState('neutral')
+    setFlavorText('')
+  }, [advance, startNextWord])
+
+  // ── 単語タイムアウト（-1ヶ月） ──
+  const onWordTimeout = useCallback(() => {
+    if (pending) return
+    handleWordTimeout()
+    subtractTime(MS_PER_MONTH)
     audio.timeout()
     setInputState('wrong')
     if (word) {
-      setFlavorText(`時間切れ… 正解：${getDisplayRomaji(createTypingState(word.kana))}`)
+      setFlavorText(`契約短縮 -1ヶ月… 正解：${getDisplayRomaji(createTypingState(word.kana))}`)
     }
     if (containerRef.current) {
       containerRef.current.style.animation = 'shakeMiss 0.4s ease-out'
@@ -83,46 +97,46 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       const rect = cardRef.current.getBoundingClientRect()
       particles.emitWrong(rect.left + rect.width / 2, rect.top + rect.height / 3)
     }
-    setTimeout(advanceWord, 1500)
-  }, [handleTimeoutAction, audio, word, particles, advanceWord])
+    // 残り時間がまだあれば次の単語へ
+    if (getRemaining() > 0) {
+      setTimeout(advanceToNext, 1000)
+    }
+  }, [handleWordTimeout, subtractTime, audio, word, particles, advanceToNext, pending, getRemaining])
 
-  const { start: startTimerTick, stop: stopTimerTick } = useTimer({
-    onTick: setTimerPct,
-    onTimeout,
-  })
-
-  // ── Initialize / reset on word change ──
+  // ── 初期化: グローバルタイマー開始 ──
   useEffect(() => {
-    startWordTimer()
+    startNextWord()
+    startGlobal(timeLimit)
+    return () => stopGlobal()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── 単語タイマー（setTimeout）──
   useEffect(() => {
-    if (timerMax > 0 && !pending) {
-      startTimerTick(timerMax)
-      setTimerPct(1)
-      setInputState('neutral')
-      setFlavorText('')
+    if (wordTimerMax > 0 && !pending) {
+      if (wordTimerRef.current) clearTimeout(wordTimerRef.current)
+      wordTimerRef.current = setTimeout(onWordTimeout, wordTimerMax)
     }
-    return () => stopTimerTick()
-  }, [wordIdx, timerMax]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      if (wordTimerRef.current) clearTimeout(wordTimerRef.current)
+    }
+  }, [wordIdx, wordTimerMax, pending]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Create typing state when word changes
+  // ── 単語変更時にタイピング状態リセット ──
   useEffect(() => {
     if (word) {
       setTypingState(createTypingState(word.kana))
     }
   }, [word])
 
-  // ── Handle word completion ──
+  // ── 単語完了 ──
   const handleWordComplete = useCallback(() => {
+    if (wordTimerRef.current) clearTimeout(wordTimerRef.current)
     const result = completeWord()
-    stopTimerTick()
     audio.correct()
     if (result.combo >= 15) audio.combo(result.combo)
 
     setInputState('correct')
-    setFlavorText(`+${result.pts}pts　${result.flavor}`)
-    spawnFloat(`+${result.pts}`)
+    setFlavorText(result.flavor)
     setCardGlow(true)
     setScorePop(true)
     setTimeout(() => setCardGlow(false), 600)
@@ -136,21 +150,20 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       if (result.combo >= 15) particles.emitCombo(cx, cy, result.combo)
     }
 
-    setTimeout(advanceWord, 1200)
-  }, [completeWord, stopTimerTick, audio, particles, spawnFloat, advanceWord])
+    setTimeout(advanceToNext, 1200)
+  }, [completeWord, audio, addTime, particles, spawnFloat, advanceToNext])
 
-  // ── Keydown handler — romaji engine ──
+  // ── キー入力 ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        stopTimerTick()
+        stopGlobal()
         setScreen('title')
         return
       }
 
       if (pending || !typingState) return
 
-      // Only single printable chars (letters + apostrophe)
       if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
       const key = e.key.toLowerCase()
       if (!/[a-z'\-]/.test(key)) return
@@ -161,15 +174,23 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
       if (result === 'accept') {
         setTypingState(newState)
-        incrementCombo()
+        const bonus = incrementCombo()
+        if (bonus.bonusMs > 0) {
+          addTime(bonus.bonusMs)
+          spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
+        }
         audio.keyPress()
       } else if (result === 'complete') {
         setTypingState(newState)
-        incrementCombo()
+        const bonus = incrementCombo()
+        if (bonus.bonusMs > 0) {
+          addTime(bonus.bonusMs)
+          spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
+        }
         handleWordComplete()
       } else {
-        // reject — error feedback, combo reset
         resetCombo()
+        subtractTime(MISS_PENALTY_MS)
         audio.wrongKey()
         setInputState('wrong')
         setTimeout(() => {
@@ -184,7 +205,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
   if (!word) return null
 
-  const progress = { current: wordIdx + 1, total: activeWords.length }
+  const remainingMonths = msToMonths(remainingMs)
 
   return (
     <motion.div
@@ -196,23 +217,22 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     >
       <div className="flex justify-between items-center mb-1.5">
         <span className="text-[10px] text-white/40 tracking-[3px] uppercase">
-          WORD
+          残り契約期間
         </span>
-        <span className="text-[10px] text-white/40 tracking-[3px]">
-          {progress.current} / {progress.total}
+        <span className="text-[14px] font-bold text-white/80">
+          {formatMonths(remainingMonths)}
         </span>
       </div>
 
-      <TimerBar pct={timerPct} />
+      <TimerBar pct={globalPct} />
 
       <div ref={cardRef}>
         <Card className="mb-3" glow={cardGlow}>
           <WordDisplay word={word.word} romaji={displayRomaji} typedLength={typedLength} />
-          <ComboDisplay combo={combo} level={comboLevel} multiplier={multiplier} />
+          <ComboDisplay combo={combo} level={comboLevel} />
         </Card>
       </div>
 
-      {/* Visual input indicator — shows typed romaji */}
       <div
         className={`
           w-full backdrop-blur-sm bg-white/5 text-white
@@ -241,8 +261,10 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         <span className="text-sm text-white/60 italic flex-1 text-left">
           {flavorText}
         </span>
-        <span className="text-[11px] text-white/40 whitespace-nowrap tracking-wide">SCORE</span>
-        <span className={`text-[22px] font-bold min-w-[52px] text-right ${scorePop ? 'animate-score-pop text-gradient-score' : ''}`}>{score}</span>
+        <span className="text-[11px] text-white/40 whitespace-nowrap tracking-wide">常駐</span>
+        <span className={`text-[22px] font-bold min-w-[80px] text-right ${scorePop ? 'animate-score-pop text-gradient-score' : ''}`}>
+          {formatMonths(score)}
+        </span>
         <FloatScoreContainer items={floatItems} />
       </div>
     </motion.div>

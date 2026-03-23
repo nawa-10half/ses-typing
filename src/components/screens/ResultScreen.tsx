@@ -12,6 +12,7 @@ import { showToast } from '../ui/Toast.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
 import { submitScore } from '../../lib/api.ts'
+import { formatMonths } from '../../lib/gameLogic.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 
@@ -69,9 +70,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
     }).then(res => {
       setSubmittedId(res.id)
       setGlobalRank(res.globalRank)
-    }).catch(() => {
-      // オフラインでも問題なし
-    })
+    }).catch(() => {})
   }, [player.id, results, setNickname])
 
   const handleRetry = () => {
@@ -84,7 +83,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       `\uD83D\uDCCB ${courseName}`,
       '',
       `\uD83C\uDFC6 ${results.rank.rank}`,
-      `\uD83D\uDCCA Score: ${results.score}`,
+      `\uD83D\uDCDD 常駐期間: ${formatMonths(results.totalMonths)}`,
       `\u26A1 Speed: ${results.kps} 打/秒`,
       `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
       `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
@@ -118,10 +117,11 @@ export function ResultScreen({ audio }: ResultScreenProps) {
 
         <MetricGrid
           metrics={[
-            { label: 'SCORE', value: results.score, large: true },
+            { label: '常駐期間', value: formatMonths(results.totalMonths), large: true },
             { label: 'SPEED', value: `${results.kps} 打/秒`, large: true },
             { label: 'ACCURACY', value: `${results.accuracy}%`, large: true },
             { label: 'MAX COMBO', value: results.maxCombo, large: true },
+            { label: 'クリア単語', value: `${results.correct}/${results.wordsAttempted}`, large: true },
           ]}
         />
 

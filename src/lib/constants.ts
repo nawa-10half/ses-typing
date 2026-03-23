@@ -5,8 +5,10 @@ export const COURSES: Course[] = [
     id: 'beginner',
     name: '初級SESコース',
     description: '短い単語でウォーミングアップ',
-    timerMultiplier: 1.5,
-    wordsPerGame: 8,
+    timeLimit: 30000,
+    baseTimeBonus: 1000,
+    monthsPerWord: 2,
+    wordTimerMultiplier: 1.5,
     words: [
       { word: '単価', kana: 'たんか', flavor: 'あなたの値段がついた瞬間' },
       { word: '現場', kana: 'げんば', flavor: '第二の故郷' },
@@ -70,8 +72,10 @@ export const COURSES: Course[] = [
     id: 'intermediate',
     name: '中級SESコース',
     description: 'IT・SES複合語を打ちまくれ',
-    timerMultiplier: 1.0,
-    wordsPerGame: 10,
+    timeLimit: 40000,
+    baseTimeBonus: 2000,
+    monthsPerWord: 3,
+    wordTimerMultiplier: 1.0,
     words: [
       { word: '客先常駐', kana: 'きゃくさきじょうちゅう', flavor: 'ここが第二の故郷になる' },
       { word: 'バージョン管理', kana: 'ばーじょんかんり', flavor: '使ってないプロジェクトもある' },
@@ -132,8 +136,10 @@ export const COURSES: Course[] = [
     id: 'advanced',
     name: '上級SESコース',
     description: 'SESあるあるフレーズで限界に挑め',
-    timerMultiplier: 0.7,
-    wordsPerGame: 10,
+    timeLimit: 50000,
+    baseTimeBonus: 3000,
+    monthsPerWord: 4,
+    wordTimerMultiplier: 0.7,
     words: [
       // ── 旧中級フレーズ ──
       { word: '名刺を切らしておりまして', kana: 'めいしをきらしておりまして', flavor: '自社の名刺は出すなと言われている' },
@@ -219,11 +225,12 @@ export const COURSES: Course[] = [
   },
 ]
 
+// min = 必要月数
 export const RANKS: RankInfo[] = [
-  { min: 3600, rank: '永久常駐の神', comment: 'もはやSES沼の主。誰も逃がさない' },
-  { min: 3000, rank: '光速タイパー', comment: 'その指で議事録を量産してほしい' },
-  { min: 2400, rank: 'スピードタイパー', comment: 'このスピードでスキルシートも更新して' },
-  { min: 1800, rank: '熟練エンジニア', comment: 'あるある全部わかるやつ' },
-  { min: 1200, rank: '沼に片足突っ込み中', comment: 'まだ浅瀬。引き返せ…引き返せるのか？' },
-  { min: 0, rank: 'SES沼の住人', comment: '中抜き構造に完全に飲み込まれた' },
+  { min: 120, rank: '永久常駐の神', comment: '10年常駐。もはやSES沼の主' },
+  { min: 60, rank: 'ベテラン常駐員', comment: '5年戦士。現場の生き字引' },
+  { min: 36, rank: '中堅エンジニア', comment: '3年目。そろそろ後輩の面倒も見る' },
+  { min: 24, rank: '現場に馴染んだ人', comment: '2年経過。もう客先が実家' },
+  { min: 12, rank: '契約更新された人', comment: '1年突破。でもまだ油断できない' },
+  { min: 0, rank: '試用期間中', comment: 'まずは3ヶ月生き延びよう' },
 ]

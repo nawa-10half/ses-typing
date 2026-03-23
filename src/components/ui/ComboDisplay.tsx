@@ -4,7 +4,6 @@ import type { ComboLevel } from '../../types/game.ts'
 interface ComboDisplayProps {
   combo: number
   level: ComboLevel
-  multiplier: number
 }
 
 const levelStyles: Record<string, string> = {
@@ -14,7 +13,7 @@ const levelStyles: Record<string, string> = {
   max: 'bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 text-white shadow-purple-500/50 shadow-xl',
 }
 
-export function ComboDisplay({ combo, level, multiplier }: ComboDisplayProps) {
+export function ComboDisplay({ combo, level }: ComboDisplayProps) {
   const prevLevelRef = useRef(level)
   const bounceRef = useRef(false)
 
@@ -28,8 +27,6 @@ export function ComboDisplay({ combo, level, multiplier }: ComboDisplayProps) {
 
   if (combo < 15) return <div className="min-h-9 mt-2" />
 
-  const isMax = level === 'max'
-
   return (
     <div className="min-h-9 mt-2 flex items-center justify-center gap-3">
       <span
@@ -42,9 +39,6 @@ export function ComboDisplay({ combo, level, multiplier }: ComboDisplayProps) {
         `}
       >
         {combo} COMBO
-      </span>
-      <span className={`text-sm font-bold ${isMax ? 'text-gradient-combo-max' : 'text-gradient-combo'}`}>
-        x{multiplier.toFixed(1)}
       </span>
     </div>
   )

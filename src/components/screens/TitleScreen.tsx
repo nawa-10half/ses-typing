@@ -65,8 +65,8 @@ export function TitleScreen() {
                     </div>
                   </div>
                   <div className="text-right mr-4">
-                    <p className="text-[18px] font-semibold text-white/80">{course.wordsPerGame}<span className="text-[11px] text-white/30">/{course.words.length}</span></p>
-                    <p className="text-[9px] text-white/30 tracking-wider">WORDS</p>
+                    <p className="text-[18px] font-semibold text-white/80">{course.timeLimit / 1000}<span className="text-[11px] text-white/30">秒</span></p>
+                    <p className="text-[9px] text-white/30 tracking-wider">{course.words.length} WORDS</p>
                   </div>
                 </div>
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-hover:text-white/40 text-lg transition-all duration-200 group-hover:translate-x-1">
