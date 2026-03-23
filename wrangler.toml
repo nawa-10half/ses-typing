@@ -1,3 +1,8 @@
 name = "ses-typing"
 compatibility_date = "2024-12-01"
 pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ses-typing-db"
+database_id = "375a0818-fd1b-4e0a-a589-4f65e8a249e2"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
 import { Button } from '../ui/Button.tsx'
@@ -6,9 +6,11 @@ import { MetricGrid } from '../ui/MetricGrid.tsx'
 import { SpeedChart } from '../ui/SpeedChart.tsx'
 import { HighScoreList } from '../ui/HighScoreList.tsx'
 import { WordLog } from '../ui/WordLog.tsx'
+import { RankingBoard } from '../ui/RankingBoard.tsx'
 import { showToast } from '../ui/Toast.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
+import { submitScore } from '../../lib/api.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 
@@ -22,12 +24,16 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const startGame = useGameStore(s => s.startGame)
   const setScreen = useGameStore(s => s.setScreen)
   const activeCourseId = useGameStore(s => s.activeCourseId)
+  const player = useGameStore(s => s.player)
   const particles = useParticles()
   const { courses } = useCourses()
 
   const results = useMemo(() => getResults(), []) // eslint-disable-line react-hooks/exhaustive-deps
   const activeCourse = courses.find(c => c.id === activeCourseId)
   const courseName = activeCourse?.name ?? ''
+
+  const [submittedId, setSubmittedId] = useState<string | null>(null)
+  const [globalRank, setGlobalRank] = useState<number | null>(null)
 
   useEffect(() => {
     audio.gameComplete()
@@ -41,6 +47,24 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       date: new Date().toISOString().slice(0, 10),
       courseId: activeCourseId ?? undefined,
     })
+
+    // グローバルランキングに送信
+    submitScore({
+      playerId: player.id,
+      nickname: player.nickname,
+      score: results.score,
+      accuracy: results.accuracy,
+      maxCombo: results.maxCombo,
+      totalTime: results.totalTime,
+      rankTitle: results.rank.rank,
+      courseId: results.courseId,
+      kps: results.kps,
+    }).then(res => {
+      setSubmittedId(res.id)
+      setGlobalRank(res.globalRank)
+    }).catch(() => {
+      // オフラインでも問題なし
+    })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRetry = () => {
@@ -48,7 +72,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   }
 
   const handleShare = () => {
-    const text = [
+    const lines = [
       '\uD83C\uDFAE SESタイピング 〜あの案件に常駐せよ〜',
       `\uD83D\uDCCB ${courseName}`,
       '',
@@ -57,11 +81,11 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       `\u26A1 Speed: ${results.kps} 打/秒`,
       `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
       `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
-      '',
-      '#SESタイピング #タイピングゲーム',
-    ].join('\n')
+    ]
+    if (globalRank) lines.push(`\uD83C\uDF0D Global Rank: #${globalRank}`)
+    lines.push('', '#SESタイピング #タイピングゲーム')
 
-    navigator.clipboard.writeText(text).then(
+    navigator.clipboard.writeText(lines.join('\n')).then(
       () => showToast('クリップボードにコピーしました'),
       () => showToast('コピーに失敗しました'),
     )
@@ -95,6 +119,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         />
 
         <SpeedChart log={results.log} />
+        <RankingBoard courseId={activeCourseId ?? undefined} highlightPlayerId={submittedId ?? undefined} />
         <HighScoreList currentScore={results.score} />
         <WordLog log={results.log} />
 
