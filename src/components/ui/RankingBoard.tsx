@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { fetchRankings, type RankingEntry } from '../../lib/api.ts'
 
+const courseNames: Record<string, string> = {
+  beginner: '初級',
+  intermediate: '中級',
+  advanced: '上級',
+}
+
 interface RankingBoardProps {
   courseId?: string
   highlightPlayerId?: string
@@ -19,9 +25,11 @@ export function RankingBoard({ courseId, highlightPlayerId }: RankingBoardProps)
 
   if (error || (!loading && rankings.length === 0)) return null
 
+  const label = courseId ? `${courseNames[courseId] ?? ''} RANKING` : 'GLOBAL RANKING'
+
   return (
     <div className="bg-white/[0.03] backdrop-blur-sm rounded-xl p-4 mb-6 border border-white/[0.06]">
-      <p className="text-[10px] text-white/40 tracking-widest mb-3">GLOBAL RANKING</p>
+      <p className="text-[10px] text-white/40 tracking-widest mb-3">{label}</p>
       {loading ? (
         <p className="text-xs text-white/30">Loading...</p>
       ) : (
