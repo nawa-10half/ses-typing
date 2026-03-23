@@ -27,7 +27,3 @@ export interface RankingsResponse {
   rankings: RankingEntry[]
   total: number
 }
-
-export interface WordsResponse {
-  courses: import('./game.ts').Course[]
-}

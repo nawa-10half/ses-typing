@@ -6,7 +6,3 @@ pages_build_output_dir = "dist"
 binding = "DB"
 database_name = "ses-typing-db"
 database_id = "placeholder-id"
-
-[[kv_namespaces]]
-binding = "KV"
-id = "placeholder-id"
