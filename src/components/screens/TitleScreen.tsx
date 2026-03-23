@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
+import { TitleArt } from '../ui/TitleArt.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
 import type { Course, CourseId } from '../../types/game.ts'
@@ -28,16 +29,9 @@ export function TitleScreen() {
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
       <Card>
-        <p className="text-[10px] text-white/40 tracking-[3px] uppercase mb-2">
-          SES EXPERIENCE TYPING
-        </p>
-        <h1 className="text-[36px] font-extrabold mb-3 tracking-tight text-gradient-rank
-          drop-shadow-[0_0_20px_rgba(129,140,248,0.2)]">
-          SESタイピング
-        </h1>
-        <p className="text-[13px] text-white/60 leading-[1.9] mb-8">
-          SESあるあるの単語を<br />ローマ字で打ち抜け
-        </p>
+        <div className="mb-8">
+          <TitleArt />
+        </div>
 
         <div className="flex flex-col gap-3">
           {courses.map(course => {

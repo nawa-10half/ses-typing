@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ザ・SES タイトルアート</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@700;900&family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .ps1-case {
+    width: 540px;
+    height: 540px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* メインアートエリア */
+  .art-area {
+    height: 100%;
+    background: linear-gradient(180deg, #0d1117 0%, #0a1628 40%, #0f1f3a 100%);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* 都市スカイライン */
+  .skyline {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    height: 180px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    opacity: 0.6;
+    filter: blur(0.5px);
+  }
+
+  .building {
+    background: linear-gradient(180deg, #1a5c3a 0%, #0d3320 100%);
+    border-top: 1px solid #2a8a5a;
+    position: relative;
+  }
+
+  .building::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 3px;
+    right: 3px;
+    bottom: 4px;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 6px,
+      rgba(255, 200, 50, 0.15) 6px,
+      rgba(255, 200, 50, 0.15) 8px
+    );
+    background-size: 100% 10px;
+  }
+
+  .building.lit::after {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 6px,
+      rgba(255, 200, 50, 0.4) 6px,
+      rgba(255, 200, 50, 0.4) 8px
+    );
+  }
+
+  /* タイトルエリア */
+  .title-block {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    margin-top: 50px;
+  }
+
+  .main-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 900;
+    font-size: 72px;
+    letter-spacing: 6px;
+    color: #fff;
+    text-shadow:
+      0 0 10px rgba(64, 180, 255, 0.6),
+      0 0 30px rgba(64, 180, 255, 0.3),
+      3px 3px 0 #1a3a5c,
+      -1px -1px 0 #2a6a9c;
+    background: linear-gradient(180deg, #ffffff 0%, #88ccff 50%, #4488cc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(2px 3px 0px #0a2040) drop-shadow(0 0 15px rgba(64,160,255,0.4));
+    line-height: 1.1;
+  }
+
+  .subtitle {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #ffdd44;
+    text-shadow:
+      0 0 8px rgba(255, 200, 0, 0.5),
+      2px 2px 0 #3a2a00;
+    margin-top: 8px;
+    letter-spacing: 3px;
+  }
+
+  /* オフィスビルのイラスト（CSS描画） */
+  .office-scene {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
+    height: 200px;
+  }
+
+  .office-building {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    height: 160px;
+    background: linear-gradient(180deg, #3a4a5c 0%, #2a3a4c 50%, #1a2a3c 100%);
+    border: 2px solid #4a6a8a;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .office-building::before {
+    content: '客先常駐ビル';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DotGothic16', 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    color: #88aacc;
+    white-space: nowrap;
+    letter-spacing: 2px;
+  }
+
+  .office-entrance {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 40px;
+    background: linear-gradient(180deg, #1a3050 0%, #0a2040 100%);
+    border: 1px solid #4a7aaa;
+    border-bottom: none;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .office-entrance::after {
+    content: '受付';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DotGothic16', 'Noto Sans JP', sans-serif;
+    font-size: 8px;
+    color: #66aadd;
+    letter-spacing: 2px;
+  }
+
+  /* ビルの窓 */
+  .windows {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 6px;
+    padding: 14px 16px;
+    height: calc(100% - 40px);
+  }
+
+  .window {
+    background: #0a1520;
+    border: 1px solid #3a5a7a;
+    border-radius: 1px;
+    position: relative;
+  }
+
+  .window.lit {
+    background: linear-gradient(180deg, #ffee88 0%, #ffcc44 100%);
+    border-color: #ddaa22;
+    box-shadow: 0 0 6px rgba(255, 200, 50, 0.4);
+  }
+
+  .window.blue {
+    background: linear-gradient(180deg, #88bbff 0%, #4488dd 100%);
+    border-color: #3366aa;
+    box-shadow: 0 0 4px rgba(100, 150, 255, 0.3);
+  }
+
+  /* 道路 */
+  .road {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: #2a2a3a;
+    border-top: 2px solid #4a4a5a;
+  }
+
+  .road::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      #ffff88,
+      #ffff88 20px,
+      transparent 20px,
+      transparent 40px
+    );
+    transform: translateY(-50%);
+  }
+
+  /* SES人材（ドット風） */
+  .ses-person {
+    position: absolute;
+    bottom: 22px;
+    width: 18px;
+    height: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ses-person .head {
+    width: 10px;
+    height: 10px;
+    background: #ffcc99;
+    border-radius: 50%;
+    border: 1px solid #cc9966;
+  }
+
+  .ses-person .body {
+    width: 14px;
+    height: 16px;
+    background: #2a2a3a;
+    border-radius: 2px;
+    margin-top: 1px;
+    border: 1px solid #4a4a5a;
+  }
+
+  .ses-person .legs {
+    width: 14px;
+    height: 6px;
+    display: flex;
+    gap: 4px;
+    margin-top: 1px;
+  }
+
+  .ses-person .legs span {
+    flex: 1;
+    background: #2a2a3a;
+    border-radius: 0 0 1px 1px;
+  }
+
+  .ses-person:nth-child(1) { left: 60px; }
+  .ses-person:nth-child(2) { left: 100px; }
+  .ses-person:nth-child(3) { right: 80px; }
+
+  .ses-person:nth-child(2) .body {
+    background: #3a3a5a;
+  }
+
+  /* ブランドロゴ風 */
+  .brand {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    z-index: 20;
+    text-align: right;
+  }
+
+  .brand-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+
+  /* グロー効果 */
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  .glow-orb.blue {
+    width: 200px;
+    height: 200px;
+    background: #4488ff;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .glow-orb.green {
+    width: 150px;
+    height: 150px;
+    background: #44ff88;
+    top: 20px;
+    right: 30px;
+  }
+</style>
+</head>
+<body>
+  <div class="ps1-case">
+    <!-- メインアートエリア -->
+    <div class="art-area">
+      <!-- グロー -->
+      <div class="glow-orb blue"></div>
+      <div class="glow-orb green"></div>
+
+      <!-- スカイライン -->
+      <div class="skyline">
+        <div class="building" style="width:20px; height:80px;"></div>
+        <div class="building lit" style="width:30px; height:120px;"></div>
+        <div class="building" style="width:18px; height:60px;"></div>
+        <div class="building lit" style="width:35px; height:150px;"></div>
+        <div class="building" style="width:22px; height:90px;"></div>
+        <div class="building lit" style="width:28px; height:130px;"></div>
+        <div class="building" style="width:40px; height:160px;"></div>
+        <div class="building" style="width:15px; height:70px;"></div>
+        <div class="building lit" style="width:32px; height:140px;"></div>
+        <div class="building" style="width:20px; height:85px;"></div>
+        <div class="building lit" style="width:25px; height:110px;"></div>
+        <div class="building" style="width:35px; height:145px;"></div>
+        <div class="building" style="width:18px; height:75px;"></div>
+        <div class="building lit" style="width:22px; height:100px;"></div>
+      </div>
+
+      <!-- タイトル -->
+      <div class="title-block">
+        <div class="main-title">ザ・SES</div>
+        <div class="subtitle">〜あの案件に常駐せよ〜</div>
+      </div>
+
+      <!-- オフィスシーン -->
+      <div class="office-scene">
+        <!-- SES人材たち -->
+        <div class="ses-person">
+          <div class="head"></div>
+          <div class="body"></div>
+          <div class="legs"><span></span><span></span></div>
+        </div>
+        <div class="ses-person">
+          <div class="head"></div>
+          <div class="body"></div>
+          <div class="legs"><span></span><span></span></div>
+        </div>
+        <div class="ses-person">
+          <div class="head"></div>
+          <div class="body"></div>
+          <div class="legs"><span></span><span></span></div>
+        </div>
+
+        <!-- オフィスビル -->
+        <div class="office-building">
+          <div class="windows">
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window blue"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window blue"></div>
+
+            <div class="window"></div>
+            <div class="window lit"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window blue"></div>
+            <div class="window"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+            <div class="window lit"></div>
+            <div class="window lit"></div>
+            <div class="window blue"></div>
+            <div class="window"></div>
+            <div class="window lit"></div>
+
+            <div class="window"></div>
+            <div class="window blue"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+            <div class="window lit"></div>
+            <div class="window lit"></div>
+            <div class="window"></div>
+          </div>
+          <div class="office-entrance"></div>
+        </div>
+
+        <!-- 道路 -->
+        <div class="road"></div>
+      </div>
+
+      <!-- ブランド -->
+      <div class="brand">
+        <div class="brand-name">SES WORKS</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

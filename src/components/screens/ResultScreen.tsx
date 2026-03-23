@@ -50,7 +50,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
 
   const handleShare = () => {
     const text = [
-      '\uD83C\uDFAE SESタイピング',
+      '\uD83C\uDFAE SESタイピング 〜あの案件に常駐せよ〜',
       `\uD83D\uDCCB ${courseName}`,
       '',
       `\uD83C\uDFC6 ${results.rank.rank}`,

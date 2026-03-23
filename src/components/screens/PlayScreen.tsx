@@ -142,6 +142,12 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   // ── Keydown handler — romaji engine ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        stopTimerTick()
+        setScreen('title')
+        return
+      }
+
       if (pending || !typingState) return
 
       // Only single printable chars (letters + apostrophe)
@@ -232,7 +238,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       </div>
 
       <div className="flex justify-between items-center mt-3 min-h-8 gap-2 relative">
-        <span className="text-xs text-white/60 italic flex-1 text-left">
+        <span className="text-sm text-white/60 italic flex-1 text-left">
           {flavorText}
         </span>
         <span className="text-[11px] text-white/40 whitespace-nowrap tracking-wide">SCORE</span>
