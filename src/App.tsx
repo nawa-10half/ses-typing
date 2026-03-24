@@ -21,7 +21,7 @@ export default function App() {
   return (
     <div className={`
       min-h-screen flex items-start justify-center
-      px-4 pt-8 pb-16 overflow-x-hidden relative
+      px-4 pt-8 pb-[120px] overflow-x-hidden relative
       bg-mesh
       ${theme === 'dark' ? 'bg-bg-dark text-white' : 'bg-bg-light text-gray-900'}
     `}>
@@ -42,6 +42,13 @@ export default function App() {
       </div>
 
       <ToastContainer />
+
+      {/* 広告バナーエリア */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-black/80 backdrop-blur-sm border-t border-white/[0.06]">
+        <div className="w-full max-w-[728px] h-[90px] flex items-center justify-center text-white/20 text-xs tracking-widest" id="ad-banner">
+          AD SPACE
+        </div>
+      </div>
     </div>
   )
 }

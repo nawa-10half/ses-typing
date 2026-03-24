@@ -1,8 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Card } from '../ui/Card.tsx'
 import { TimerBar } from '../ui/TimerBar.tsx'
-import { WordDisplay } from '../ui/WordDisplay.tsx'
 import { ComboDisplay } from '../ui/ComboDisplay.tsx'
 import { FloatScoreContainer, useFloatScore } from '../ui/FloatScore.tsx'
 import { useGameStore, useCurrentWord, useComboLevel } from '../../stores/gameStore.ts'
@@ -226,41 +224,97 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
       <TimerBar pct={globalPct} />
 
-      <div ref={cardRef}>
-        <Card className="mb-3" glow={cardGlow}>
-          <WordDisplay word={word.word} romaji={displayRomaji} typedLength={typedLength} />
-          <ComboDisplay combo={combo} level={comboLevel} />
-        </Card>
-      </div>
-
+      {/* ── ターミナルウィンドウ ── */}
       <div
+        ref={cardRef}
         className={`
-          w-full backdrop-blur-sm bg-white/5 text-white
-          border-[1.5px] rounded-xl py-3.5 px-4
-          font-mono text-xl text-center
-          transition-all duration-200 min-h-[56px]
-          flex items-center justify-center
-          break-all leading-relaxed
+          rounded-lg overflow-hidden border transition-all duration-200
+          ${cardGlow ? 'animate-card-flash' : ''}
           ${inputState === 'correct'
-            ? 'border-emerald-400 animate-pulse-correct'
+            ? 'border-emerald-500/40'
             : inputState === 'wrong'
-              ? 'border-red-400 animate-shake-miss'
-              : 'border-white/20'
+              ? 'border-red-500/40'
+              : 'border-white/[0.12]'
           }
         `}
       >
-        <span className="text-white/80">
-          {typingState
-            ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
-            : ''}
-        </span>
-        <span className="animate-pulse text-white/30 ml-0.5">|</span>
+        {/* タイトルバー */}
+        <div className="flex items-center gap-2 px-3 py-2 bg-[#1a1a2e]/90 border-b border-white/[0.06]">
+          <div className="flex gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-red-500/80" />
+            <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
+            <span className="w-3 h-3 rounded-full bg-green-500/80" />
+          </div>
+          <span className="text-[11px] text-white/30 font-mono flex-1 text-center">
+            ses@客先常駐ビル:~/案件
+          </span>
+        </div>
+
+        {/* ターミナル本体 */}
+        <div className="bg-[#0a0a14]/95 backdrop-blur-xl px-5 py-5 font-mono">
+          {/* 単語出題 */}
+          <div className="mb-3">
+            <span className="text-emerald-500/70 text-xs">$ echo </span>
+            <span className="text-3xl font-semibold tracking-[4px] text-white drop-shadow-[0_0_8px_rgba(129,140,248,0.15)]">
+              {word.word}
+            </span>
+          </div>
+
+          {/* ローマ字ガイド */}
+          <div className="mb-2">
+            <span className="text-white/20 text-xs">$ type </span>
+            <span className="text-lg tracking-wider break-all leading-relaxed">
+              {displayRomaji.split('').map((char, i) => (
+                <span
+                  key={`${word.word}-${i}`}
+                  className={`transition-all duration-100 ${
+                    i < typedLength
+                      ? 'text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]'
+                      : 'text-white/25'
+                  }`}
+                >
+                  {char}
+                </span>
+              ))}
+            </span>
+          </div>
+
+          {/* フレーバーテキスト */}
+          <div className="min-h-5 mb-3">
+            <span className="text-[13px] text-white/40 italic">
+              {flavorText && `# ${flavorText}`}
+            </span>
+          </div>
+
+          {/* 入力行 */}
+          <div
+            className={`
+              flex items-center py-2 px-3 -mx-1 rounded
+              transition-all duration-200
+              ${inputState === 'correct'
+                ? 'bg-emerald-500/10'
+                : inputState === 'wrong'
+                  ? 'bg-red-500/10'
+                  : 'bg-white/[0.02]'
+              }
+            `}
+          >
+            <span className="text-emerald-500 mr-2 text-sm shrink-0">❯</span>
+            <span className="text-white/80 text-lg break-all leading-relaxed">
+              {typingState
+                ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
+                : ''}
+            </span>
+            <span className="animate-pulse text-emerald-400/60 ml-0.5">▊</span>
+          </div>
+
+          {/* コンボ表示 */}
+          <ComboDisplay combo={combo} level={comboLevel} />
+        </div>
       </div>
 
-      <div className="flex justify-between items-center mt-3 min-h-8 gap-2 relative">
-        <span className="text-sm text-white/60 italic flex-1 text-left">
-          {flavorText}
-        </span>
+      {/* スコア */}
+      <div className="flex justify-end items-center mt-3 min-h-8 gap-2 relative">
         <span className="text-[11px] text-white/40 whitespace-nowrap tracking-wide">常駐</span>
         <span className={`text-[22px] font-bold min-w-[80px] text-right ${scorePop ? 'animate-score-pop text-gradient-score' : ''}`}>
           {formatMonths(score)}

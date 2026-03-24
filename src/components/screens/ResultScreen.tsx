@@ -127,7 +127,9 @@ export function ResultScreen({ audio }: ResultScreenProps) {
 
         <SpeedChart log={results.log} />
 
-        {submitted && (
+        {!submitted ? (
+          <NicknameDialog defaultValue={player.nickname} onSubmit={handleNicknameSubmit} />
+        ) : (
           <RankingBoard courseId={activeCourseId ?? undefined} highlightPlayerId={submittedId ?? undefined} />
         )}
 
@@ -151,9 +153,6 @@ export function ResultScreen({ audio }: ResultScreenProps) {
           </button>
         </div>
       </Card>
-      {!submitted && (
-        <NicknameDialog defaultValue={player.nickname} onSubmit={handleNicknameSubmit} />
-      )}
     </motion.div>
   )
 }

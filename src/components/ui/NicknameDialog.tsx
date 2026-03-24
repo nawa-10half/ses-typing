@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 
 interface NicknameDialogProps {
   defaultValue: string
@@ -11,7 +11,7 @@ export function NicknameDialog({ defaultValue, onSubmit }: NicknameDialogProps) 
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    setTimeout(() => inputRef.current?.focus(), 100)
+    inputRef.current?.focus()
   }, [])
 
   const handleSubmit = () => {
@@ -24,44 +24,34 @@ export function NicknameDialog({ defaultValue, onSubmit }: NicknameDialogProps) 
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-[#12121a]/95 backdrop-blur-md rounded-2xl p-6 border border-white/[0.1]
-            shadow-[0_0_40px_rgba(0,0,0,0.5)] w-[320px] mx-4"
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white/[0.06] backdrop-blur-md rounded-xl p-5 mb-6 border border-white/[0.1]"
+    >
+      <p className="text-[10px] text-white/40 tracking-widest mb-3">ENTER YOUR NAME</p>
+      <div className="flex gap-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="匿名"
+          maxLength={20}
+          className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2
+            text-sm text-white placeholder-white/30
+            focus:outline-none focus:border-white/30 transition-colors"
+        />
+        <button
+          onClick={handleSubmit}
+          className="px-4 py-2 bg-indigo-500/80 hover:bg-indigo-500 text-white text-sm font-semibold
+            rounded-lg transition-colors cursor-pointer"
         >
-          <p className="text-[10px] text-white/40 tracking-widest mb-1">RANKING</p>
-          <p className="text-lg font-bold text-white mb-4">ニックネームを入力</p>
-          <input
-            ref={inputRef}
-            type="text"
-            value={value}
-            onChange={e => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="匿名"
-            maxLength={20}
-            className="w-full bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2.5
-              text-sm text-white placeholder-white/30
-              focus:outline-none focus:border-indigo-500/50 transition-colors mb-3"
-          />
-          <button
-            onClick={handleSubmit}
-            className="w-full py-2.5 bg-indigo-500/80 hover:bg-indigo-500 text-white text-sm font-semibold
-              rounded-lg transition-colors cursor-pointer"
-          >
-            ランキングに登録
-          </button>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+          送信
+        </button>
+      </div>
+    </motion.div>
   )
 }
