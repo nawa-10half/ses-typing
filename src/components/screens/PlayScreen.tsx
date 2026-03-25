@@ -39,7 +39,6 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const startNextWord = useGameStore(s => s.startNextWord)
 
   const enterBonus = useGameStore(s => s.enterBonus)
-  const bonusTriggered = useGameStore(s => s.bonusTriggered)
   const bonusPhase = useBonusPhase()
 
   const word = useCurrentWord()
@@ -166,14 +165,14 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     c.count++
     clearTimeout(c.timer)
     c.timer = window.setTimeout(() => { c.count = 0 }, 1000)
-    if (c.count >= 5 && !bonusTriggered && bonusPhase === 'inactive') {
+    if (c.count >= 5 && bonusPhase === 'inactive') {
       c.count = 0
       stopGlobal()
       enterBonus()
       return true
     }
     return false
-  }, [bonusTriggered, bonusPhase, stopGlobal, enterBonus])
+  }, [bonusPhase, stopGlobal, enterBonus])
 
   // ── キー入力 ──
   useEffect(() => {
@@ -211,7 +210,8 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
         // Check bonus trigger (read fresh combo from store)
         const freshCombo = useGameStore.getState().combo
-        if (shouldTriggerBonus(freshCombo, bonusTriggered)) {
+        if (shouldTriggerBonus(freshCombo)) {
+          resetCombo()
           stopGlobal()
           enterBonus()
           return

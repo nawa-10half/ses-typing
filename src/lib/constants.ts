@@ -250,8 +250,20 @@ export const BONUS_WORDS: import('../types/game.ts').Word[] = [
 
 export const BONUS_MULTIPLIER = 7.0
 export const BONUS_WORD_COUNT = 3
-export const BONUS_TRIGGER_COMBO = 100
-export const BONUS_TRIGGER_CHANCE = 1 / 100
+
+/** コンボ数に応じたボーナス突入確率テーブル */
+export const BONUS_TRIGGER_TABLE: { min: number; chance: number }[] = [
+  { min: 100, chance: 1 / 16 },
+  { min: 90,  chance: 1 / 32 },
+  { min: 80,  chance: 1 / 64 },
+  { min: 70,  chance: 1 / 128 },
+  { min: 50,  chance: 1 / 256 },
+  { min: 40,  chance: 1 / 512 },
+  { min: 30,  chance: 1 / 1024 },
+  { min: 20,  chance: 1 / 2048 },
+  { min: 10,  chance: 1 / 4096 },
+  { min: 0,   chance: 1 / 8192 },
+]
 
 // min = 必要月数
 export const RANKS: RankInfo[] = [

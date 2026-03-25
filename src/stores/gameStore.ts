@@ -54,7 +54,6 @@ interface GameState extends PersistedState {
   bonusPhase: BonusPhase
   bonusWords: Word[]
   bonusWordIdx: number
-  bonusTriggered: boolean
 
   // Actions
   startGame: (course: Course) => void
@@ -116,7 +115,6 @@ export const useGameStore = create<GameState>()(
       bonusPhase: 'inactive' as BonusPhase,
       bonusWords: [],
       bonusWordIdx: 0,
-      bonusTriggered: false,
 
       startGame: (course) => {
         const shuffled = [...course.words].sort(() => Math.random() - 0.5)
@@ -143,7 +141,6 @@ export const useGameStore = create<GameState>()(
           bonusPhase: 'inactive' as BonusPhase,
           bonusWords: [],
           bonusWordIdx: 0,
-          bonusTriggered: false,
           screen: 'play' as Screen,
           playCount: state.playCount + 1,
         }))
@@ -255,7 +252,6 @@ export const useGameStore = create<GameState>()(
           bonusPhase: 'blackout' as BonusPhase,
           bonusWords: selected,
           bonusWordIdx: 0,
-          bonusTriggered: true,
           pending: true,
         })
       },
