@@ -20,7 +20,7 @@ export function WordLog({ log }: WordLogProps) {
             )}
           </span>
           <span className={l.ok ? 'text-emerald-400' : 'text-red-400'}>
-            {l.ok ? `+${l.pts}pts` : 'MISS'}
+            {l.ok ? `+${l.pts}ヶ月` : 'MISS'}
           </span>
         </div>
       ))}

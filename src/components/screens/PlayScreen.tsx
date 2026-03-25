@@ -23,6 +23,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const wordTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const savedRemainingRef = useRef(0)
 
   const wordIdx = useGameStore(s => s.wordIdx)
   const score = useGameStore(s => s.score)
@@ -39,7 +40,6 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const startNextWord = useGameStore(s => s.startNextWord)
 
   const enterBonus = useGameStore(s => s.enterBonus)
-  const bonusTriggered = useGameStore(s => s.bonusTriggered)
   const bonusPhase = useBonusPhase()
 
   const word = useCurrentWord()
@@ -158,6 +158,24 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     setTimeout(advanceToNext, 1200)
   }, [completeWord, audio, addTime, particles, spawnFloat, advanceToNext])
 
+  // ── デバッグ: Backquote(`) 5連打でボーナス発動 ──
+  const cheatRef = useRef({ count: 0, timer: 0 })
+  const handleCheatKey = useCallback((e: KeyboardEvent) => {
+    if (e.key !== '`') return false
+    const c = cheatRef.current
+    c.count++
+    clearTimeout(c.timer)
+    c.timer = window.setTimeout(() => { c.count = 0 }, 1000)
+    if (c.count >= 5 && bonusPhase === 'inactive') {
+      c.count = 0
+      savedRemainingRef.current = getRemaining()
+      stopGlobal()
+      enterBonus()
+      return true
+    }
+    return false
+  }, [bonusPhase, stopGlobal, enterBonus])
+
   // ── キー入力 ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -166,6 +184,12 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         setScreen('title')
         return
       }
+
+      // Debug cheat key
+      if (handleCheatKey(e)) return
+
+      // Bonus mode has its own keydown handler
+      if (bonusPhase !== 'inactive') return
 
       if (pending || !typingState) return
 
@@ -188,7 +212,9 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
         // Check bonus trigger (read fresh combo from store)
         const freshCombo = useGameStore.getState().combo
-        if (shouldTriggerBonus(freshCombo, bonusTriggered)) {
+        if (shouldTriggerBonus(freshCombo)) {
+          resetCombo()
+          savedRemainingRef.current = getRemaining()
           stopGlobal()
           enterBonus()
           return
@@ -214,13 +240,17 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [typingState, pending, audio, handleWordComplete])
+  }, [typingState, pending, audio, handleWordComplete, bonusPhase, handleCheatKey])
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
-    // Resume the current word timer
+    resetCombo()
+    const remaining = savedRemainingRef.current
+    if (remaining > 0) {
+      startGlobal(remaining)
+    }
     startNextWord()
-  }, [startNextWord])
+  }, [startNextWord, startGlobal, resetCombo])
 
   if (!word) return null
 

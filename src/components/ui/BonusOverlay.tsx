@@ -1,17 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { Card } from './Card.tsx'
-import { WordDisplay } from './WordDisplay.tsx'
 import { TimerBar } from './TimerBar.tsx'
 import { FloatScoreContainer, useFloatScore } from './FloatScore.tsx'
 import { useGameStore, useBonusPhase, useCurrentBonusWord } from '../../stores/gameStore.ts'
 import { useTimer } from '../../hooks/useTimer.ts'
-import {
-  createTypingState, processKey, getDisplayRomaji, getTypedLength,
-  type TypingState,
-} from '../../lib/romajiEngine.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
-import { BONUS_MULTIPLIER, BONUS_WORD_COUNT } from '../../lib/constants.ts'
+import { BONUS_MULTIPLIER, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
 
 interface BonusOverlayProps {
   audio: AudioEngine
@@ -22,7 +17,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const bonusPhase = useBonusPhase()
   const bonusWord = useCurrentBonusWord()
   const setBonusPhase = useGameStore(s => s.setBonusPhase)
-  const startBonusWordTimer = useGameStore(s => s.startBonusWordTimer)
   const completeBonusWord = useGameStore(s => s.completeBonusWord)
   const handleBonusTimeout = useGameStore(s => s.handleBonusTimeout)
   const advanceBonus = useGameStore(s => s.advanceBonus)
@@ -30,29 +24,41 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const resetCombo = useGameStore(s => s.resetCombo)
   const score = useGameStore(s => s.score)
   const pending = useGameStore(s => s.pending)
-  const timerMax = useGameStore(s => s.wordTimerMax)
   const bonusWordIdx = useGameStore(s => s.bonusWordIdx)
+  const setPending = useCallback((v: boolean) => useGameStore.setState({ pending: v }), [])
 
   const particles = useParticles()
   const cardRef = useRef<HTMLDivElement>(null)
-  const goldRainRef = useRef(0)
   const { items: floatItems, spawn: spawnFloat } = useFloatScore()
 
   const [timerPct, setTimerPct] = useState(1)
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
   const [flavorText, setFlavorText] = useState('')
-  const [typingState, setTypingState] = useState<TypingState | null>(null)
+  const [typedIndex, setTypedIndex] = useState(0)
   const [cardGlow, setCardGlow] = useState(false)
   const [scorePop, setScorePop] = useState(false)
 
-  const displayRomaji = typingState ? getDisplayRomaji(typingState) : ''
-  const typedLength = typingState ? getTypedLength(typingState) : 0
+  const commandText = bonusWord?.word ?? ''
+
+  // ── End bonus (shared by timeout and all-words-done) ──
+  const endBonus = useCallback(() => {
+    stopTimerTick()
+    setBonusPhase('outro')
+    audio.bonusOutro()
+    if (particles) {
+      particles.confetti(80)
+    }
+    setTimeout(() => {
+      setBonusPhase('inactive')
+      onEnd()
+    }, 2000)
+  }, [setBonusPhase, audio, particles, onEnd]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Phase transitions ──
   useEffect(() => {
     if (bonusPhase === 'blackout') {
       audio.bonusBlackout()
-      const t = setTimeout(() => setBonusPhase('intro'), 1500)
+      const t = setTimeout(() => setBonusPhase('intro'), 600)
       return () => clearTimeout(t)
     }
     if (bonusPhase === 'intro') {
@@ -62,7 +68,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
       }
       const t = setTimeout(() => {
         setBonusPhase('active')
-        startBonusWordTimer()
+        setPending(false)
       }, 2500)
       return () => clearTimeout(t)
     }
@@ -71,84 +77,61 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   // ── Gold rain during active phase ──
   useEffect(() => {
     if (bonusPhase === 'active' && particles) {
-      const tick = () => {
-        particles.emitBonusGoldRain()
-        goldRainRef.current = requestAnimationFrame(tick)
-      }
-      // Throttle to ~10fps
       const interval = setInterval(() => {
-        goldRainRef.current = requestAnimationFrame(tick)
+        particles.emitBonusGoldRain()
       }, 100)
-      return () => {
-        clearInterval(interval)
-        cancelAnimationFrame(goldRainRef.current)
-      }
+      return () => clearInterval(interval)
     }
   }, [bonusPhase, particles])
 
-  // ── Create typing state for current bonus word ──
+  // ── Reset typed index for current bonus word ──
   useEffect(() => {
     if (bonusWord && bonusPhase === 'active') {
-      setTypingState(createTypingState(bonusWord.kana))
+      setTypedIndex(0)
       setInputState('neutral')
       setFlavorText('')
     }
   }, [bonusWord, bonusPhase])
 
-  // ── Advance bonus word ──
-  const advanceBonusWord = useCallback(() => {
-    const done = advanceBonus()
-    if (done) {
-      setBonusPhase('outro')
-      audio.bonusOutro()
-      if (particles) {
-        particles.confetti(80)
-      }
-      setTimeout(() => {
-        setBonusPhase('inactive')
-        onEnd()
-      }, 2000)
-    } else {
-      startBonusWordTimer()
-      setInputState('neutral')
-      setFlavorText('')
-    }
-  }, [advanceBonus, setBonusPhase, startBonusWordTimer, audio, particles, onEnd])
-
-  // ── Timeout ──
+  // ── Timeout (bonus time is up) ──
   const onTimeout = useCallback(() => {
     handleBonusTimeout()
     audio.timeout()
     setInputState('wrong')
-    if (bonusWord) {
-      setFlavorText(`時間切れ… 正解：${getDisplayRomaji(createTypingState(bonusWord.kana))}`)
-    }
-    setTimeout(advanceBonusWord, 1500)
-  }, [handleBonusTimeout, audio, bonusWord, advanceBonusWord])
+    setFlavorText('時間切れ…')
+    setTimeout(endBonus, 1500)
+  }, [handleBonusTimeout, audio, endBonus])
 
   const { start: startTimerTick, stop: stopTimerTick } = useTimer({
     onTick: setTimerPct,
     onTimeout,
   })
 
-  // ── Start timer when bonus word timer is set ──
+  // ── Start overall timer once when active phase begins ──
   useEffect(() => {
-    if (bonusPhase === 'active' && timerMax > 0 && !pending) {
-      startTimerTick(timerMax)
+    if (bonusPhase === 'active' && !pending) {
+      startTimerTick(BONUS_TIME_LIMIT)
       setTimerPct(1)
     }
     return () => stopTimerTick()
-  }, [bonusWordIdx, timerMax, bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Advance bonus word (timer keeps running) ──
+  const advanceBonusWord = useCallback(() => {
+    advanceBonus()
+    setPending(false)
+    setInputState('neutral')
+    setFlavorText('')
+  }, [advanceBonus, setPending])
 
   // ── Word complete ──
   const handleWordComplete = useCallback(() => {
     const result = completeBonusWord()
-    stopTimerTick()
     audio.bonusCorrect()
 
     setInputState('correct')
-    setFlavorText(`+${result.pts}pts　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
-    spawnFloat(`+${result.pts}`)
+    setFlavorText(`+${result.months}ヶ月　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
+    spawnFloat(`+${result.months}ヶ月`)
     setCardGlow(true)
     setScorePop(true)
     setTimeout(() => setCardGlow(false), 600)
@@ -160,30 +143,32 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     }
 
     setTimeout(advanceBonusWord, 1200)
-  }, [completeBonusWord, stopTimerTick, audio, particles, spawnFloat, advanceBonusWord])
+  }, [completeBonusWord, audio, particles, spawnFloat, advanceBonusWord])
 
-  // ── Keydown handler ──
+  // ── Keydown handler (direct character input) ──
   useEffect(() => {
     if (bonusPhase !== 'active') return
 
     const handler = (e: KeyboardEvent) => {
-      if (pending || !typingState) return
-      if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
-      const key = e.key.toLowerCase()
-      if (!/[a-z'\-]/.test(key)) return
+      if (pending || !commandText) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (e.key.length !== 1) return
 
       e.preventDefault()
 
-      const { state: newState, result } = processKey(typingState, key)
+      const expected = commandText[typedIndex]
+      const matches = e.key.toLowerCase() === expected.toLowerCase()
 
-      if (result === 'accept') {
-        setTypingState(newState)
+      if (matches) {
+        const nextIndex = typedIndex + 1
+        setTypedIndex(nextIndex)
         incrementCombo()
-        audio.keyPress()
-      } else if (result === 'complete') {
-        setTypingState(newState)
-        incrementCombo()
-        handleWordComplete()
+
+        if (nextIndex >= commandText.length) {
+          handleWordComplete()
+        } else {
+          audio.keyPress()
+        }
       } else {
         resetCombo()
         audio.wrongKey()
@@ -196,7 +181,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [bonusPhase, typingState, pending, audio, handleWordComplete, incrementCombo, resetCombo])
+  }, [bonusPhase, typedIndex, commandText, pending, audio, handleWordComplete, incrementCombo, resetCombo])
 
   // ── Render phases ──
 
@@ -235,7 +220,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
               BONUS
             </span>
             <span className="text-[11px] text-amber-400/70 tracking-[3px]">
-              {bonusWordIdx + 1} / {BONUS_WORD_COUNT}
+              {bonusWordIdx + 1} WORDS
             </span>
           </div>
 
@@ -243,7 +228,28 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
           <div ref={cardRef}>
             <Card className="mb-3 bonus-card" glow={cardGlow}>
-              <WordDisplay word={bonusWord.word} romaji={displayRomaji} typedLength={typedLength} />
+              {/* Command display with character-by-character progress */}
+              <div className="text-center py-3">
+                <div className="text-xs text-amber-400/50 mb-2 tracking-wider">
+                  {bonusWord.flavor}
+                </div>
+                <div className="text-3xl font-mono font-bold tracking-[3px] break-all leading-relaxed">
+                  {commandText.split('').map((char, i) => (
+                    <span
+                      key={`${bonusWordIdx}-${i}`}
+                      className={`transition-all duration-100 ${
+                        i < typedIndex
+                          ? 'text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+                          : i === typedIndex
+                            ? 'text-white underline decoration-amber-400 decoration-2 underline-offset-4'
+                            : 'text-white/30'
+                      }`}
+                    >
+                      {char === ' ' ? '\u00A0' : char}
+                    </span>
+                  ))}
+                </div>
+              </div>
               {/* Bonus multiplier badge */}
               <div className="min-h-9 mt-2 flex items-center justify-center">
                 <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full
@@ -274,9 +280,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             `}
           >
             <span className="text-amber-100/80">
-              {typingState
-                ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
-                : ''}
+              {commandText.slice(0, typedIndex)}
             </span>
             <span className="animate-pulse text-amber-400/40 ml-0.5">|</span>
           </div>
@@ -285,8 +289,8 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             <span className="text-xs text-amber-300/70 italic flex-1 text-left">
               {flavorText}
             </span>
-            <span className="text-[11px] text-amber-400/50 whitespace-nowrap tracking-wide">SCORE</span>
-            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{score}</span>
+            <span className="text-[11px] text-amber-400/50 whitespace-nowrap tracking-wide">常駐</span>
+            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{score}ヶ月</span>
             <FloatScoreContainer items={floatItems} />
           </div>
         </div>
