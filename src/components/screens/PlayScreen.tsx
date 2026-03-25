@@ -23,6 +23,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const wordTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const savedRemainingRef = useRef(0)
 
   const wordIdx = useGameStore(s => s.wordIdx)
   const score = useGameStore(s => s.score)
@@ -167,6 +168,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     c.timer = window.setTimeout(() => { c.count = 0 }, 1000)
     if (c.count >= 5 && bonusPhase === 'inactive') {
       c.count = 0
+      savedRemainingRef.current = getRemaining()
       stopGlobal()
       enterBonus()
       return true
@@ -212,6 +214,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         const freshCombo = useGameStore.getState().combo
         if (shouldTriggerBonus(freshCombo)) {
           resetCombo()
+          savedRemainingRef.current = getRemaining()
           stopGlobal()
           enterBonus()
           return
@@ -241,13 +244,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
-    // Resume the global timer with remaining time
-    const remaining = getRemaining()
+    // Resume the global timer with the time saved at bonus entry
+    const remaining = savedRemainingRef.current
     if (remaining > 0) {
       startGlobal(remaining)
     }
     startNextWord()
-  }, [startNextWord, getRemaining, startGlobal])
+  }, [startNextWord, startGlobal])
 
   if (!word) return null
 
