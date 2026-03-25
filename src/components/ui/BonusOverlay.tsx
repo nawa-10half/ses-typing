@@ -6,7 +6,7 @@ import { useGameStore, useBonusPhase, useCurrentBonusWord } from '../../stores/g
 import { useTimer } from '../../hooks/useTimer.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
-import { BONUS_MULTIPLIER, BONUS_WORD_COUNT, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
+import { BONUS_MULTIPLIER, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
 
 interface BonusOverlayProps {
   audio: AudioEngine
@@ -118,15 +118,11 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
   // ── Advance bonus word (timer keeps running) ──
   const advanceBonusWord = useCallback(() => {
-    const done = advanceBonus()
-    if (done) {
-      endBonus()
-    } else {
-      setPending(false)
-      setInputState('neutral')
-      setFlavorText('')
-    }
-  }, [advanceBonus, endBonus, setPending])
+    advanceBonus()
+    setPending(false)
+    setInputState('neutral')
+    setFlavorText('')
+  }, [advanceBonus, setPending])
 
   // ── Word complete ──
   const handleWordComplete = useCallback(() => {
@@ -224,7 +220,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
               BONUS
             </span>
             <span className="text-[11px] text-amber-400/70 tracking-[3px]">
-              {bonusWordIdx + 1} / {BONUS_WORD_COUNT}
+              {bonusWordIdx + 1} WORDS
             </span>
           </div>
 

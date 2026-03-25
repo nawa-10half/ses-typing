@@ -9,7 +9,7 @@ import {
   computeResults, MS_PER_MONTH,
 } from '../lib/gameLogic.ts'
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
-import { BONUS_WORDS, BONUS_WORD_COUNT, BONUS_MULTIPLIER } from '../lib/constants.ts'
+import { BONUS_WORDS, BONUS_MULTIPLIER } from '../lib/constants.ts'
 
 export type BonusPhase = 'inactive' | 'blackout' | 'intro' | 'active' | 'outro'
 
@@ -70,7 +70,7 @@ interface GameState extends PersistedState {
   setBonusPhase: (phase: BonusPhase) => void
   completeBonusWord: () => CorrectResult
   handleBonusTimeout: () => void
-  advanceBonus: () => boolean
+  advanceBonus: () => void
 
   saveScore: (entry: HighScoreEntry) => number
   toggleTheme: () => void
@@ -246,10 +246,9 @@ export const useGameStore = create<GameState>()(
 
       enterBonus: () => {
         const shuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
-        const selected = shuffled.slice(0, BONUS_WORD_COUNT)
         set({
           bonusPhase: 'blackout' as BonusPhase,
-          bonusWords: selected,
+          bonusWords: shuffled,
           bonusWordIdx: 0,
           pending: true,
         })
@@ -301,9 +300,13 @@ export const useGameStore = create<GameState>()(
       advanceBonus: () => {
         const state = get()
         const nextIdx = state.bonusWordIdx + 1
-        if (nextIdx >= state.bonusWords.length) return true
-        set({ bonusWordIdx: nextIdx })
-        return false
+        if (nextIdx >= state.bonusWords.length) {
+          // Re-shuffle and loop
+          const reshuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
+          set({ bonusWords: reshuffled, bonusWordIdx: 0 })
+        } else {
+          set({ bonusWordIdx: nextIdx })
+        }
       },
 
       saveScore: (entry) => {
