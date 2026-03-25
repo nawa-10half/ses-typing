@@ -21,7 +21,7 @@ export function HighScoreList({ currentScore }: HighScoreListProps) {
               isCurrent ? 'text-emerald-400 font-bold' : 'text-white/60'
             }`}
           >
-            <span>#{i + 1} {s.score}pts</span>
+            <span>#{i + 1} {s.score}ヶ月</span>
             <span>{s.accuracy}% {s.date}</span>
           </div>
         )

@@ -133,8 +133,8 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     audio.bonusCorrect()
 
     setInputState('correct')
-    setFlavorText(`+${result.pts}pts　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
-    spawnFloat(`+${result.pts}`)
+    setFlavorText(`+${result.months}ヶ月　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
+    spawnFloat(`+${result.months}ヶ月`)
     setCardGlow(true)
     setScorePop(true)
     setTimeout(() => setCardGlow(false), 600)
@@ -294,8 +294,8 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             <span className="text-xs text-amber-300/70 italic flex-1 text-left">
               {flavorText}
             </span>
-            <span className="text-[11px] text-amber-400/50 whitespace-nowrap tracking-wide">SCORE</span>
-            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{score}</span>
+            <span className="text-[11px] text-amber-400/50 whitespace-nowrap tracking-wide">常駐</span>
+            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{score}ヶ月</span>
             <FloatScoreContainer items={floatItems} />
           </div>
         </div>

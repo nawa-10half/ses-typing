@@ -34,12 +34,6 @@ export function calcWordTimer(romajiLength: number, multiplier: number): number 
   return Math.round(base * multiplier)
 }
 
-/** スコア算出（速度ベース） */
-export function calcScore(romajiLength: number, elapsed: number): number {
-  const speed = romajiLength / (elapsed / 1000)
-  const speedBonus = Math.round(Math.min(speed * 10, 100))
-  return 100 + speedBonus
-}
 
 /** 月数を「Xヶ月」or「X年Yヶ月」にフォーマット */
 export function formatMonths(months: number): string {
@@ -61,13 +55,14 @@ export function shouldTriggerBonus(combo: number, alreadyTriggered: boolean): bo
   return Math.random() < BONUS_TRIGGER_CHANCE
 }
 
-export function calcBonusScore(
+/** ボーナスワードの獲得月数を算出 */
+export function calcBonusMonths(
   timerMax: number,
   elapsed: number,
-): { pts: number; multiplier: number } {
-  const timeBonus = Math.round(Math.max(0, (timerMax - elapsed) / timerMax) * 50)
-  const pts = Math.round((100 + timeBonus) * BONUS_MULTIPLIER)
-  return { pts, multiplier: BONUS_MULTIPLIER }
+  baseMonths: number,
+): number {
+  const timeBonus = Math.max(0, (timerMax - elapsed) / timerMax) * 0.5
+  return Math.round(baseMonths * BONUS_MULTIPLIER * (1 + timeBonus))
 }
 
 export function getRank(totalMonths: number): RankInfo {
