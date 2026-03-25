@@ -101,15 +101,32 @@ export class AudioEngine {
     this._noise(0.1, 0.04, 0.5)
   }
 
-  // Bonus mode: ominous blackout sound (low rumble building up)
+  // Bonus mode: CRT power-off "プチュン" sound
   bonusBlackout(): void {
-    this._tone(80, 1.2, 'sawtooth', 0.15)
-    this._tone(60, 1.5, 'triangle', 0.1, 0.3)
-    this._noise(1.0, 0.08, 0.2)
-    // Rising tension
-    for (let i = 0; i < 8; i++) {
-      this._tone(100 + i * 30, 0.15, 'square', 0.04 + i * 0.01, 0.8 + i * 0.08)
-    }
+    if (!this.enabled || !this.ctx || !this.masterGain) return
+    const t = this.ctx.currentTime
+
+    // High-frequency sweep down (the "プチュ" part)
+    const sweep = this.ctx.createOscillator()
+    const sweepGain = this.ctx.createGain()
+    sweep.type = 'sine'
+    sweep.frequency.setValueAtTime(4000, t)
+    sweep.frequency.exponentialRampToValueAtTime(80, t + 0.15)
+    sweepGain.gain.setValueAtTime(0.25, t)
+    sweepGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2)
+    sweep.connect(sweepGain)
+    sweepGain.connect(this.masterGain)
+    sweep.start(t)
+    sweep.stop(t + 0.25)
+
+    // CRT flyback whine (the "ン" resonance)
+    this._tone(2400, 0.3, 'sine', 0.06, 0.05)
+    this._tone(1200, 0.15, 'triangle', 0.04, 0.08)
+
+    // Brief static burst
+    this._noise(0.08, 0.12, 0)
+    // Residual hum
+    this._tone(60, 0.5, 'sine', 0.03, 0.15)
   }
 
   // Bonus mode: flashy intro jingle (pachislot-like fanfare)

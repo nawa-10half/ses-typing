@@ -250,19 +250,24 @@ html[data-theme="light"] .orb-4 { background: radial-gradient(circle, rgba(236, 
   justify-content: center;
 }
 
-/* Phase 1: Blackout */
+/* Phase 1: Blackout (CRT power-off "プチュン" effect) */
 .bonus-blackout {
-  background: transparent;
+  background: #000;
 }
 .bonus-blackout-inner {
   position: absolute;
   inset: 0;
-  background: #000;
-  animation: bonusBlackoutIn 1.2s ease-in forwards;
+  background: #fff;
+  animation: crtPowerOff 0.8s ease-in forwards;
+  box-shadow: 0 0 60px 20px rgba(255, 255, 255, 0.6);
 }
-@keyframes bonusBlackoutIn {
-  0%   { opacity: 0; }
-  100% { opacity: 1; }
+@keyframes crtPowerOff {
+  0%   { transform: scale(1, 1); opacity: 1; border-radius: 0; }
+  40%  { transform: scale(1.02, 0.01); opacity: 1; border-radius: 0; }
+  60%  { transform: scale(0.8, 0.005); opacity: 0.9; border-radius: 0; }
+  80%  { transform: scale(0.1, 0.003); opacity: 0.7; border-radius: 50%; }
+  90%  { transform: scale(0.02, 0.002); opacity: 0.5; border-radius: 50%; }
+  100% { transform: scale(0, 0); opacity: 0; border-radius: 50%; }
 }
 
 /* Phase 2: Intro */

@@ -46,7 +46,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   useEffect(() => {
     if (bonusPhase === 'blackout') {
       audio.bonusBlackout()
-      const t = setTimeout(() => setBonusPhase('intro'), 1500)
+      const t = setTimeout(() => setBonusPhase('intro'), 1000)
       return () => clearTimeout(t)
     }
     if (bonusPhase === 'intro') {
