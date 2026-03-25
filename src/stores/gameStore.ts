@@ -296,7 +296,7 @@ export const useGameStore = create<GameState>()(
           log: [...state.log, entry],
         })
 
-        return { pts, combo: state.combo, multiplier, elapsed, flavor: word.flavor }
+        return { pts, combo: state.combo, multiplier, elapsed, flavor: word.flavor, timeBonus: 0, months: 0 }
       },
 
       handleBonusTimeout: () => {

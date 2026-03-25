@@ -30,7 +30,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const resetCombo = useGameStore(s => s.resetCombo)
   const score = useGameStore(s => s.score)
   const pending = useGameStore(s => s.pending)
-  const timerMax = useGameStore(s => s.timerMax)
+  const timerMax = useGameStore(s => s.wordTimerMax)
   const bonusWordIdx = useGameStore(s => s.bonusWordIdx)
 
   const particles = useParticles()
