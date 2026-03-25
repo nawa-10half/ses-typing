@@ -225,6 +225,34 @@ export const COURSES: Course[] = [
   },
 ]
 
+export const BONUS_WORDS: import('../types/game.ts').Word[] = [
+  { word: 'rm -rf /*', kana: 'あーるえむはいふんあーるえふすらっしゅあすたりすく', flavor: '全てを消し去る禁断のコマンド' },
+  { word: 'sudo su -', kana: 'すーどぅーえすゆーはいふん', flavor: '神になる呪文' },
+  { word: 'chmod 777', kana: 'しーえいちもっどなななななな', flavor: 'セキュリティ？知らない子ですね' },
+  { word: 'kill -9', kana: 'きるはいふんないん', flavor: '問答無用の強制終了' },
+  { word: 'dd if=/dev/zero', kana: 'でぃーでぃーいふいこーるでぶぜろ', flavor: 'ディスクを虚無で埋め尽くす' },
+  { word: 'fork bomb', kana: 'ふぉーくぼむ', flavor: ':(){ :|:& };: 見た目も爆弾' },
+  { word: 'git push --force', kana: 'ぎっとぷっしゅふぉーす', flavor: '歴史改変の禁術' },
+  { word: 'DROP TABLE users', kana: 'どろっぷてーぶるゆーざーず', flavor: 'ユーザーが全員消えた日' },
+  { word: 'eval(input())', kana: 'いーばるいんぷっと', flavor: '任意コード実行の入り口' },
+  { word: 'SELECT * FROM', kana: 'せれくとあすたりすくふろむ', flavor: '本番DBで全件取得する勇気' },
+  { word: 'console.log', kana: 'こんそーるろぐ', flavor: 'デバッガーより信頼されている' },
+  { word: 'npm install', kana: 'えぬぴーえむいんすとーる', flavor: 'node_modulesがブラックホールになる' },
+  { word: 'stackoverflow', kana: 'すたっくおーばーふろー', flavor: '本当の先生はここにいる' },
+  { word: 'NullPointerException', kana: 'ぬるぽいんたーえくせぷしょん', flavor: 'Javaの洗礼' },
+  { word: 'segmentation fault', kana: 'せぐめんてーしょんふぉると', flavor: 'C言語の死の宣告' },
+  { word: 'undefined is not a function', kana: 'あんでふぁいんどいずのっとあふぁんくしょん', flavor: 'JSエンジニアの日常' },
+  { word: 'localhost:3000', kana: 'ろーかるほすとさんぜろぜろぜろ', flavor: '開発者の聖地' },
+  { word: 'kubectl delete pod', kana: 'きゅーぶしーてぃーえるでりーとぽっど', flavor: 'コンテナごと葬り去る' },
+  { word: 'pip install', kana: 'ぴっぷいんすとーる', flavor: '依存関係の沼へようこそ' },
+  { word: 'cat /etc/passwd', kana: 'きゃっとえとせとらぱすわーど', flavor: 'まず最初に見るファイル' },
+]
+
+export const BONUS_MULTIPLIER = 7.0
+export const BONUS_WORD_COUNT = 3
+export const BONUS_TRIGGER_COMBO = 100
+export const BONUS_TRIGGER_CHANCE = 1 / 100
+
 // min = 必要月数
 export const RANKS: RankInfo[] = [
   { min: 120, rank: '永久常駐の神', comment: '10年常駐。もはやSES沼の主' },

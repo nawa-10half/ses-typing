@@ -43,5 +43,17 @@ export function useParticleSystem(canvasRef: React.RefObject<HTMLCanvasElement |
     systemRef.current?.emitScreenFlash()
   }, [])
 
-  return { emitCorrect, emitWrong, emitCombo, confetti, screenFlash }
+  const emitBonusIntro = useCallback((x: number, y: number) => {
+    systemRef.current?.emitBonusIntro(x, y)
+  }, [])
+
+  const emitBonusGoldRain = useCallback(() => {
+    systemRef.current?.emitBonusGoldRain()
+  }, [])
+
+  const emitBonusCorrect = useCallback((x: number, y: number) => {
+    systemRef.current?.emitBonusCorrect(x, y)
+  }, [])
+
+  return { emitCorrect, emitWrong, emitCombo, confetti, screenFlash, emitBonusIntro, emitBonusGoldRain, emitBonusCorrect }
 }

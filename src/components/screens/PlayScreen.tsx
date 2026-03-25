@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 import { TimerBar } from '../ui/TimerBar.tsx'
 import { ComboDisplay } from '../ui/ComboDisplay.tsx'
 import { FloatScoreContainer, useFloatScore } from '../ui/FloatScore.tsx'
-import { useGameStore, useCurrentWord, useComboLevel } from '../../stores/gameStore.ts'
+import { useGameStore, useCurrentWord, useComboLevel, useBonusPhase } from '../../stores/gameStore.ts'
+import { shouldTriggerBonus } from '../../lib/gameLogic.ts'
+import { BonusOverlay } from '../ui/BonusOverlay.tsx'
 import { useTimer } from '../../hooks/useTimer.ts'
 import {
   createTypingState, processKey, getDisplayRomaji, getTypedLength,
@@ -35,6 +37,11 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const advance = useGameStore(s => s.advance)
   const setScreen = useGameStore(s => s.setScreen)
   const startNextWord = useGameStore(s => s.startNextWord)
+
+  const enterBonus = useGameStore(s => s.enterBonus)
+  const bonusTriggered = useGameStore(s => s.bonusTriggered)
+  const bonusPhase = useBonusPhase()
+
   const word = useCurrentWord()
   const comboLevel = useComboLevel()
   const particles = useParticles()
@@ -178,6 +185,14 @@ export function PlayScreen({ audio }: PlayScreenProps) {
           spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
         }
         audio.keyPress()
+
+        // Check bonus trigger (read fresh combo from store)
+        const freshCombo = useGameStore.getState().combo
+        if (shouldTriggerBonus(freshCombo, bonusTriggered)) {
+          stopGlobal()
+          enterBonus()
+          return
+        }
       } else if (result === 'complete') {
         setTypingState(newState)
         const bonus = incrementCombo()
@@ -201,11 +216,21 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     return () => document.removeEventListener('keydown', handler)
   }, [typingState, pending, audio, handleWordComplete])
 
+  // ── Resume normal game after bonus ──
+  const handleBonusEnd = useCallback(() => {
+    // Resume the current word timer
+    startNextWord()
+  }, [startNextWord])
+
   if (!word) return null
 
   const remainingMonths = msToMonths(remainingMs)
 
   return (
+    <>
+    {bonusPhase !== 'inactive' && (
+      <BonusOverlay audio={audio} onEnd={handleBonusEnd} />
+    )}
     <motion.div
       ref={containerRef}
       initial={{ opacity: 0, y: 24, scale: 0.98 }}
@@ -322,5 +347,6 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         <FloatScoreContainer items={floatItems} />
       </div>
     </motion.div>
+    </>
   )
 }

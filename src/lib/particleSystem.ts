@@ -180,6 +180,53 @@ export class ParticleSystem {
     }
   }
 
+  // Gold rain for bonus mode — call repeatedly during active phase
+  emitBonusGoldRain(): void {
+    if (this.particles.length > 300) return
+    for (let i = 0; i < 3; i++) {
+      const colors = ['#fbbf24', '#f59e0b', '#fde68a', '#d97706', '#fffbeb']
+      this.spawn({
+        x: Math.random() * this.w,
+        y: -10 - Math.random() * 20,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: 1.5 + Math.random() * 2,
+        life: 2.5 + Math.random() * 2,
+        size: 3 + Math.random() * 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        gravity: 0.03,
+        friction: 0.998,
+        type: 'rect',
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.12,
+      })
+    }
+  }
+
+  // Big burst for bonus intro — gold explosion
+  emitBonusIntro(x: number, y: number): void {
+    const colors = ['#fbbf24', '#f59e0b', '#fde68a', '#d97706', '#fff', '#fef3c7']
+    this.burst(x, y, 80, {
+      colors, speed: 8, life: 1.5, size: 7, gravity: 0.06, friction: 0.96,
+    })
+    // Sparkle ring
+    this.burst(x, y, 30, {
+      colors: ['#fff', '#fde68a', '#fbbf24'],
+      speed: 3, life: 1.0, size: 2, gravity: 0.01,
+    })
+  }
+
+  // Bonus correct — gold + rainbow burst
+  emitBonusCorrect(x: number, y: number): void {
+    const colors = ['#fbbf24', '#f59e0b', '#fde68a', '#34d399', '#818cf8', '#f472b6']
+    this.burst(x, y, 50, {
+      colors, speed: 6, life: 1.2, size: 6, gravity: 0.08,
+    })
+    this.burst(x, y, 20, {
+      colors: ['#fff', '#fef3c7'],
+      speed: 2.5, life: 0.6, size: 2, gravity: 0.02,
+    })
+  }
+
   emitAmbient(): void {
     if (this.particles.length > 150) return
     this.spawn({

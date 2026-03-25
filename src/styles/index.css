@@ -240,6 +240,141 @@ html[data-theme="light"] .orb-4 { background: radial-gradient(circle, rgba(236, 
   pointer-events: none;
 }
 
+/* ── Bonus mode overlay ── */
+.bonus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Phase 1: Blackout */
+.bonus-blackout {
+  background: transparent;
+}
+.bonus-blackout-inner {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  animation: bonusBlackoutIn 1.2s ease-in forwards;
+}
+@keyframes bonusBlackoutIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Phase 2: Intro */
+.bonus-intro {
+  background: #000;
+  overflow: hidden;
+}
+.bonus-intro-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.4), transparent 70%);
+  animation: bonusFlash 2.5s ease-out forwards;
+}
+@keyframes bonusFlash {
+  0%   { opacity: 0; transform: scale(0.3); }
+  15%  { opacity: 1; transform: scale(2); }
+  30%  { opacity: 0.3; transform: scale(1); }
+  50%  { opacity: 0.8; transform: scale(1.5); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+.bonus-intro-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  animation: bonusIntroAppear 1.0s 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes bonusIntroAppear {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-5deg); }
+  60%  { opacity: 1; transform: scale(1.1) rotate(1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+.bonus-intro-title {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706, #fbbf24);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: bonusGradientShift 2s ease-in-out infinite, neonPulse 1.5s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.4);
+}
+@keyframes bonusGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.bonus-intro-sub {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fbbf24;
+  letter-spacing: 4px;
+  animation: bonusPulse 0.8s ease-in-out infinite alternate;
+}
+@keyframes bonusPulse {
+  0%   { opacity: 0.6; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Phase 3: Active */
+.bonus-active {
+  pointer-events: auto;
+}
+.bonus-active-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(251, 191, 36, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(245, 158, 11, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(217, 119, 6, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(30, 15, 0, 0.95) 100%);
+  animation: bonusBgPulse 3s ease-in-out infinite;
+}
+@keyframes bonusBgPulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.15); }
+}
+.bonus-active-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  padding: 0 1.5rem;
+}
+.bonus-card {
+  border-color: rgba(251, 191, 36, 0.2) !important;
+  background: rgba(251, 191, 36, 0.06) !important;
+}
+
+/* Phase 4: Outro */
+.bonus-outro {
+  background: rgba(0, 0, 0, 0.85);
+  animation: bonusOutroFade 2s ease-out forwards;
+}
+@keyframes bonusOutroFade {
+  0%   { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.bonus-outro-content {
+  text-align: center;
+}
+.bonus-outro-title {
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #fbbf24;
+  animation: bonusIntroAppear 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+}
+
 /* ── Particle canvas ── */
 #particle-canvas {
   position: fixed;
