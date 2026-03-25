@@ -101,6 +101,43 @@ export class AudioEngine {
     this._noise(0.1, 0.04, 0.5)
   }
 
+  // Bonus mode: ominous blackout sound (low rumble building up)
+  bonusBlackout(): void {
+    this._tone(80, 1.2, 'sawtooth', 0.15)
+    this._tone(60, 1.5, 'triangle', 0.1, 0.3)
+    this._noise(1.0, 0.08, 0.2)
+    // Rising tension
+    for (let i = 0; i < 8; i++) {
+      this._tone(100 + i * 30, 0.15, 'square', 0.04 + i * 0.01, 0.8 + i * 0.08)
+    }
+  }
+
+  // Bonus mode: flashy intro jingle (pachislot-like fanfare)
+  bonusIntro(): void {
+    const fanfare = [784, 988, 1175, 1319, 1568, 1319, 1568, 2093]
+    fanfare.forEach((f, i) => this._tone(f, 0.2, 'sine', 0.22, i * 0.1))
+    // Sparkle layer
+    ;[1568, 2093, 2637].forEach((f, i) => this._tone(f, 0.4, 'sine', 0.08, 0.8 + i * 0.06))
+    // Bass hit
+    this._tone(131, 0.5, 'triangle', 0.2, 0.0)
+    this._tone(165, 0.5, 'triangle', 0.15, 0.4)
+  }
+
+  // Bonus mode: correct answer (extra dramatic)
+  bonusCorrect(): void {
+    ;[784, 988, 1175, 1568].forEach((f, i) =>
+      this._tone(f, 0.25, 'sine', 0.22, i * 0.06))
+    this._tone(131, 0.3, 'triangle', 0.15)
+    this._noise(0.08, 0.06, 0.3)
+  }
+
+  // Bonus mode: outro (returning to normal)
+  bonusOutro(): void {
+    ;[1568, 1319, 1175, 988, 784].forEach((f, i) =>
+      this._tone(f, 0.3, 'sine', 0.15, i * 0.12))
+    this._tone(262, 0.6, 'triangle', 0.1, 0.6)
+  }
+
   gameComplete(): void {
     const melody = [523, 659, 784, 1047, 784, 1047, 1319]
     melody.forEach((f, i) => this._tone(f, 0.35, 'sine', 0.2, i * 0.15))

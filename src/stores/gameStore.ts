@@ -6,9 +6,12 @@ import type {
 } from '../types/game.ts'
 import {
   calcWordTimer, calcScore, getComboLevel, getComboMilestoneBonus,
-  computeResults, MS_PER_MONTH,
+  computeResults, MS_PER_MONTH, calcBonusScore,
 } from '../lib/gameLogic.ts'
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
+import { BONUS_WORDS, BONUS_WORD_COUNT } from '../lib/constants.ts'
+
+export type BonusPhase = 'inactive' | 'blackout' | 'intro' | 'active' | 'outro'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -47,6 +50,12 @@ interface GameState extends PersistedState {
   wordTimerMax: number
   pending: boolean
 
+  // Bonus mode
+  bonusPhase: BonusPhase
+  bonusWords: Word[]
+  bonusWordIdx: number
+  bonusTriggered: boolean
+
   // Actions
   startGame: (course: Course) => void
   startNextWord: () => void
@@ -56,6 +65,14 @@ interface GameState extends PersistedState {
   handleWordTimeout: () => void
   advance: () => void
   getResults: () => ReturnType<typeof computeResults>
+
+  // Bonus actions
+  enterBonus: () => void
+  setBonusPhase: (phase: BonusPhase) => void
+  startBonusWordTimer: () => void
+  completeBonusWord: () => CorrectResult
+  handleBonusTimeout: () => void
+  advanceBonus: () => boolean
 
   saveScore: (entry: HighScoreEntry) => number
   toggleTheme: () => void
@@ -96,6 +113,11 @@ export const useGameStore = create<GameState>()(
       wordTimerMax: 0,
       pending: false,
 
+      bonusPhase: 'inactive' as BonusPhase,
+      bonusWords: [],
+      bonusWordIdx: 0,
+      bonusTriggered: false,
+
       startGame: (course) => {
         const shuffled = [...course.words].sort(() => Math.random() - 0.5)
         set(state => ({
@@ -118,6 +140,10 @@ export const useGameStore = create<GameState>()(
           wordStartTime: 0,
           wordTimerMax: 0,
           pending: false,
+          bonusPhase: 'inactive' as BonusPhase,
+          bonusWords: [],
+          bonusWordIdx: 0,
+          bonusTriggered: false,
           screen: 'play' as Screen,
           playCount: state.playCount + 1,
         }))
@@ -224,6 +250,80 @@ export const useGameStore = create<GameState>()(
         )
       },
 
+      enterBonus: () => {
+        const shuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
+        const selected = shuffled.slice(0, BONUS_WORD_COUNT)
+        set({
+          bonusPhase: 'blackout' as BonusPhase,
+          bonusWords: selected,
+          bonusWordIdx: 0,
+          bonusTriggered: true,
+          pending: true,
+        })
+      },
+
+      setBonusPhase: (phase) => set({ bonusPhase: phase }),
+
+      startBonusWordTimer: () => {
+        const { bonusWordIdx, bonusWords } = get()
+        const word = bonusWords[bonusWordIdx]
+        const wordTimerMax = calcWordTimer(getDefaultRomaji(word.kana).length, 0.6)
+        set({
+          wordTimerMax,
+          wordStartTime: performance.now(),
+          pending: false,
+        })
+      },
+
+      completeBonusWord: () => {
+        const state = get()
+        const word = state.bonusWords[state.bonusWordIdx]
+        const elapsed = performance.now() - state.wordStartTime
+        const { pts, multiplier } = calcBonusScore(state.wordTimerMax, elapsed)
+
+        const entry: LogEntry = {
+          word: word.word,
+          ok: true,
+          pts,
+          combo: state.combo,
+          time: Math.round(elapsed),
+        }
+
+        set({
+          pending: true,
+          score: state.score + pts,
+          correct: state.correct + 1,
+          log: [...state.log, entry],
+        })
+
+        return { pts, combo: state.combo, multiplier, elapsed, flavor: word.flavor }
+      },
+
+      handleBonusTimeout: () => {
+        const state = get()
+        if (state.pending) return
+        const word = state.bonusWords[state.bonusWordIdx]
+        const entry: LogEntry = {
+          word: word.word,
+          ok: false,
+          pts: 0,
+          combo: 0,
+          time: state.wordTimerMax,
+        }
+        set({
+          pending: true,
+          log: [...state.log, entry],
+        })
+      },
+
+      advanceBonus: () => {
+        const state = get()
+        const nextIdx = state.bonusWordIdx + 1
+        if (nextIdx >= state.bonusWords.length) return true
+        set({ bonusWordIdx: nextIdx })
+        return false
+      },
+
       saveScore: (entry) => {
         const state = get()
         const scores = [...state.highScores, entry]
@@ -269,4 +369,9 @@ export const useComboLevel = () => useGameStore(s => getComboLevel(s.combo))
 export const useCurrentWord = () => useGameStore(s => {
   if (s.wordIdx >= s.activeWords.length) return null
   return s.activeWords[s.wordIdx]
+})
+export const useBonusPhase = () => useGameStore(s => s.bonusPhase)
+export const useCurrentBonusWord = () => useGameStore(s => {
+  if (s.bonusWordIdx >= s.bonusWords.length) return null
+  return s.bonusWords[s.bonusWordIdx]
 })
