@@ -250,6 +250,7 @@ export const BONUS_WORDS: import('../types/game.ts').Word[] = [
 
 export const BONUS_MULTIPLIER = 7.0
 export const BONUS_WORD_COUNT = 3
+export const BONUS_TIME_LIMIT = 15000 // ボーナスタイム全体の制限時間 (ms)
 
 /** コンボ数に応じたボーナス突入確率テーブル */
 export const BONUS_TRIGGER_TABLE: { min: number; chance: number }[] = [

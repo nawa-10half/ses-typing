@@ -6,10 +6,10 @@ import type {
 } from '../types/game.ts'
 import {
   calcWordTimer, getComboLevel, getComboMilestoneBonus,
-  computeResults, MS_PER_MONTH, calcBonusMonths,
+  computeResults, MS_PER_MONTH,
 } from '../lib/gameLogic.ts'
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
-import { BONUS_WORDS, BONUS_WORD_COUNT } from '../lib/constants.ts'
+import { BONUS_WORDS, BONUS_WORD_COUNT, BONUS_MULTIPLIER } from '../lib/constants.ts'
 
 export type BonusPhase = 'inactive' | 'blackout' | 'intro' | 'active' | 'outro'
 
@@ -68,7 +68,6 @@ interface GameState extends PersistedState {
   // Bonus actions
   enterBonus: () => void
   setBonusPhase: (phase: BonusPhase) => void
-  startBonusWordTimer: () => void
   completeBonusWord: () => CorrectResult
   handleBonusTimeout: () => void
   advanceBonus: () => boolean
@@ -258,30 +257,17 @@ export const useGameStore = create<GameState>()(
 
       setBonusPhase: (phase) => set({ bonusPhase: phase }),
 
-      startBonusWordTimer: () => {
-        const { bonusWordIdx, bonusWords } = get()
-        const word = bonusWords[bonusWordIdx]
-        // Direct character input: timer based on command length (not romaji)
-        const wordTimerMax = calcWordTimer(word.word.length, 1.0)
-        set({
-          wordTimerMax,
-          wordStartTime: performance.now(),
-          pending: false,
-        })
-      },
-
       completeBonusWord: () => {
         const state = get()
         const word = state.bonusWords[state.bonusWordIdx]
-        const elapsed = performance.now() - state.wordStartTime
-        const bonusMonths = calcBonusMonths(state.wordTimerMax, elapsed, state.monthsPerWord)
+        const bonusMonths = Math.round(state.monthsPerWord * BONUS_MULTIPLIER)
 
         const entry: LogEntry = {
           word: word.word,
           ok: true,
           pts: bonusMonths,
           combo: state.combo,
-          time: Math.round(elapsed),
+          time: 0,
         }
 
         set({
@@ -292,7 +278,7 @@ export const useGameStore = create<GameState>()(
           log: [...state.log, entry],
         })
 
-        return { pts: bonusMonths, combo: state.combo, timeBonus: 0, months: bonusMonths, elapsed, flavor: word.flavor }
+        return { pts: bonusMonths, combo: state.combo, timeBonus: 0, months: bonusMonths, elapsed: 0, flavor: word.flavor }
       },
 
       handleBonusTimeout: () => {

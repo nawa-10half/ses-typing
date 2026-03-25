@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-// useRef still needed for cardRef
 import { Card } from './Card.tsx'
 import { TimerBar } from './TimerBar.tsx'
 import { FloatScoreContainer, useFloatScore } from './FloatScore.tsx'
@@ -7,7 +6,7 @@ import { useGameStore, useBonusPhase, useCurrentBonusWord } from '../../stores/g
 import { useTimer } from '../../hooks/useTimer.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
-import { BONUS_MULTIPLIER, BONUS_WORD_COUNT } from '../../lib/constants.ts'
+import { BONUS_MULTIPLIER, BONUS_WORD_COUNT, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
 
 interface BonusOverlayProps {
   audio: AudioEngine
@@ -18,7 +17,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const bonusPhase = useBonusPhase()
   const bonusWord = useCurrentBonusWord()
   const setBonusPhase = useGameStore(s => s.setBonusPhase)
-  const startBonusWordTimer = useGameStore(s => s.startBonusWordTimer)
   const completeBonusWord = useGameStore(s => s.completeBonusWord)
   const handleBonusTimeout = useGameStore(s => s.handleBonusTimeout)
   const advanceBonus = useGameStore(s => s.advanceBonus)
@@ -26,8 +24,8 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const resetCombo = useGameStore(s => s.resetCombo)
   const score = useGameStore(s => s.score)
   const pending = useGameStore(s => s.pending)
-  const timerMax = useGameStore(s => s.wordTimerMax)
   const bonusWordIdx = useGameStore(s => s.bonusWordIdx)
+  const setPending = useCallback((v: boolean) => useGameStore.setState({ pending: v }), [])
 
   const particles = useParticles()
   const cardRef = useRef<HTMLDivElement>(null)
@@ -41,6 +39,20 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const [scorePop, setScorePop] = useState(false)
 
   const commandText = bonusWord?.word ?? ''
+
+  // ── End bonus (shared by timeout and all-words-done) ──
+  const endBonus = useCallback(() => {
+    stopTimerTick()
+    setBonusPhase('outro')
+    audio.bonusOutro()
+    if (particles) {
+      particles.confetti(80)
+    }
+    setTimeout(() => {
+      setBonusPhase('inactive')
+      onEnd()
+    }, 2000)
+  }, [setBonusPhase, audio, particles, onEnd]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Phase transitions ──
   useEffect(() => {
@@ -56,13 +68,13 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
       }
       const t = setTimeout(() => {
         setBonusPhase('active')
-        startBonusWordTimer()
+        setPending(false)
       }, 2500)
       return () => clearTimeout(t)
     }
   }, [bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Gold rain during active phase (fixed: no recursive rAF leak) ──
+  // ── Gold rain during active phase ──
   useEffect(() => {
     if (bonusPhase === 'active' && particles) {
       const interval = setInterval(() => {
@@ -81,55 +93,44 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     }
   }, [bonusWord, bonusPhase])
 
-  // ── Advance bonus word ──
-  const advanceBonusWord = useCallback(() => {
-    const done = advanceBonus()
-    if (done) {
-      setBonusPhase('outro')
-      audio.bonusOutro()
-      if (particles) {
-        particles.confetti(80)
-      }
-      setTimeout(() => {
-        setBonusPhase('inactive')
-        onEnd()
-      }, 2000)
-    } else {
-      startBonusWordTimer()
-      setInputState('neutral')
-      setFlavorText('')
-    }
-  }, [advanceBonus, setBonusPhase, startBonusWordTimer, audio, particles, onEnd])
-
-  // ── Timeout ──
+  // ── Timeout (bonus time is up) ──
   const onTimeout = useCallback(() => {
     handleBonusTimeout()
     audio.timeout()
     setInputState('wrong')
-    if (bonusWord) {
-      setFlavorText(`時間切れ… 正解：${bonusWord.word}`)
-    }
-    setTimeout(advanceBonusWord, 1500)
-  }, [handleBonusTimeout, audio, bonusWord, advanceBonusWord])
+    setFlavorText('時間切れ…')
+    setTimeout(endBonus, 1500)
+  }, [handleBonusTimeout, audio, endBonus])
 
   const { start: startTimerTick, stop: stopTimerTick } = useTimer({
     onTick: setTimerPct,
     onTimeout,
   })
 
-  // ── Start timer when bonus word timer is set ──
+  // ── Start overall timer once when active phase begins ──
   useEffect(() => {
-    if (bonusPhase === 'active' && timerMax > 0 && !pending) {
-      startTimerTick(timerMax)
+    if (bonusPhase === 'active' && !pending) {
+      startTimerTick(BONUS_TIME_LIMIT)
       setTimerPct(1)
     }
     return () => stopTimerTick()
-  }, [bonusWordIdx, timerMax, bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Advance bonus word (timer keeps running) ──
+  const advanceBonusWord = useCallback(() => {
+    const done = advanceBonus()
+    if (done) {
+      endBonus()
+    } else {
+      setPending(false)
+      setInputState('neutral')
+      setFlavorText('')
+    }
+  }, [advanceBonus, endBonus, setPending])
 
   // ── Word complete ──
   const handleWordComplete = useCallback(() => {
     const result = completeBonusWord()
-    stopTimerTick()
     audio.bonusCorrect()
 
     setInputState('correct')
@@ -146,7 +147,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     }
 
     setTimeout(advanceBonusWord, 1200)
-  }, [completeBonusWord, stopTimerTick, audio, particles, spawnFloat, advanceBonusWord])
+  }, [completeBonusWord, audio, particles, spawnFloat, advanceBonusWord])
 
   // ── Keydown handler (direct character input) ──
   useEffect(() => {
@@ -155,13 +156,11 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     const handler = (e: KeyboardEvent) => {
       if (pending || !commandText) return
       if (e.ctrlKey || e.metaKey || e.altKey) return
-      // Accept printable characters and space
       if (e.key.length !== 1) return
 
       e.preventDefault()
 
       const expected = commandText[typedIndex]
-      // Case-insensitive match for letters
       const matches = e.key.toLowerCase() === expected.toLowerCase()
 
       if (matches) {

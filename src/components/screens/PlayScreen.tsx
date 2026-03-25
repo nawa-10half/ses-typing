@@ -244,13 +244,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
-    // Resume the global timer with the time saved at bonus entry
+    resetCombo()
     const remaining = savedRemainingRef.current
     if (remaining > 0) {
       startGlobal(remaining)
     }
     startNextWord()
-  }, [startNextWord, startGlobal])
+  }, [startNextWord, startGlobal, resetCombo])
 
   if (!word) return null
 

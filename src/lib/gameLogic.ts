@@ -1,5 +1,5 @@
 import type { LogEntry, RankInfo, GameResult, ComboLevel, CourseId } from '../types/game.ts'
-import { RANKS, BONUS_TRIGGER_TABLE, BONUS_MULTIPLIER } from './constants.ts'
+import { RANKS, BONUS_TRIGGER_TABLE } from './constants.ts'
 
 /** 2秒 = 1ヶ月 */
 export const MS_PER_MONTH = 2000
@@ -55,15 +55,6 @@ export function shouldTriggerBonus(combo: number): boolean {
   return Math.random() < entry.chance
 }
 
-/** ボーナスワードの獲得月数を算出 */
-export function calcBonusMonths(
-  timerMax: number,
-  elapsed: number,
-  baseMonths: number,
-): number {
-  const timeBonus = Math.max(0, (timerMax - elapsed) / timerMax) * 0.5
-  return Math.round(baseMonths * BONUS_MULTIPLIER * (1 + timeBonus))
-}
 
 export function getRank(totalMonths: number): RankInfo {
   return RANKS.find(r => totalMonths >= r.min) ?? RANKS[RANKS.length - 1]
