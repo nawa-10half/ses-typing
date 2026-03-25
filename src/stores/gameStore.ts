@@ -267,7 +267,8 @@ export const useGameStore = create<GameState>()(
       startBonusWordTimer: () => {
         const { bonusWordIdx, bonusWords } = get()
         const word = bonusWords[bonusWordIdx]
-        const wordTimerMax = calcWordTimer(getDefaultRomaji(word.kana).length, 0.6)
+        // Direct character input: timer based on command length (not romaji)
+        const wordTimerMax = calcWordTimer(word.word.length, 1.0)
         set({
           wordTimerMax,
           wordStartTime: performance.now(),

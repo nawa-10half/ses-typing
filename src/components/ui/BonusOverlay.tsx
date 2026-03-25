@@ -1,14 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+// useRef still needed for cardRef
 import { Card } from './Card.tsx'
-import { WordDisplay } from './WordDisplay.tsx'
 import { TimerBar } from './TimerBar.tsx'
 import { FloatScoreContainer, useFloatScore } from './FloatScore.tsx'
 import { useGameStore, useBonusPhase, useCurrentBonusWord } from '../../stores/gameStore.ts'
 import { useTimer } from '../../hooks/useTimer.ts'
-import {
-  createTypingState, processKey, getDisplayRomaji, getTypedLength,
-  type TypingState,
-} from '../../lib/romajiEngine.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 import { BONUS_MULTIPLIER, BONUS_WORD_COUNT } from '../../lib/constants.ts'
@@ -35,18 +31,16 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
   const particles = useParticles()
   const cardRef = useRef<HTMLDivElement>(null)
-  const goldRainRef = useRef(0)
   const { items: floatItems, spawn: spawnFloat } = useFloatScore()
 
   const [timerPct, setTimerPct] = useState(1)
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
   const [flavorText, setFlavorText] = useState('')
-  const [typingState, setTypingState] = useState<TypingState | null>(null)
+  const [typedIndex, setTypedIndex] = useState(0)
   const [cardGlow, setCardGlow] = useState(false)
   const [scorePop, setScorePop] = useState(false)
 
-  const displayRomaji = typingState ? getDisplayRomaji(typingState) : ''
-  const typedLength = typingState ? getTypedLength(typingState) : 0
+  const commandText = bonusWord?.word ?? ''
 
   // ── Phase transitions ──
   useEffect(() => {
@@ -68,28 +62,20 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     }
   }, [bonusPhase]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Gold rain during active phase ──
+  // ── Gold rain during active phase (fixed: no recursive rAF leak) ──
   useEffect(() => {
     if (bonusPhase === 'active' && particles) {
-      const tick = () => {
-        particles.emitBonusGoldRain()
-        goldRainRef.current = requestAnimationFrame(tick)
-      }
-      // Throttle to ~10fps
       const interval = setInterval(() => {
-        goldRainRef.current = requestAnimationFrame(tick)
+        particles.emitBonusGoldRain()
       }, 100)
-      return () => {
-        clearInterval(interval)
-        cancelAnimationFrame(goldRainRef.current)
-      }
+      return () => clearInterval(interval)
     }
   }, [bonusPhase, particles])
 
-  // ── Create typing state for current bonus word ──
+  // ── Reset typed index for current bonus word ──
   useEffect(() => {
     if (bonusWord && bonusPhase === 'active') {
-      setTypingState(createTypingState(bonusWord.kana))
+      setTypedIndex(0)
       setInputState('neutral')
       setFlavorText('')
     }
@@ -121,7 +107,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     audio.timeout()
     setInputState('wrong')
     if (bonusWord) {
-      setFlavorText(`時間切れ… 正解：${getDisplayRomaji(createTypingState(bonusWord.kana))}`)
+      setFlavorText(`時間切れ… 正解：${bonusWord.word}`)
     }
     setTimeout(advanceBonusWord, 1500)
   }, [handleBonusTimeout, audio, bonusWord, advanceBonusWord])
@@ -162,28 +148,32 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     setTimeout(advanceBonusWord, 1200)
   }, [completeBonusWord, stopTimerTick, audio, particles, spawnFloat, advanceBonusWord])
 
-  // ── Keydown handler ──
+  // ── Keydown handler (direct character input) ──
   useEffect(() => {
     if (bonusPhase !== 'active') return
 
     const handler = (e: KeyboardEvent) => {
-      if (pending || !typingState) return
-      if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
-      const key = e.key.toLowerCase()
-      if (!/[a-z'\-]/.test(key)) return
+      if (pending || !commandText) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      // Accept printable characters and space
+      if (e.key.length !== 1) return
 
       e.preventDefault()
 
-      const { state: newState, result } = processKey(typingState, key)
+      const expected = commandText[typedIndex]
+      // Case-insensitive match for letters
+      const matches = e.key.toLowerCase() === expected.toLowerCase()
 
-      if (result === 'accept') {
-        setTypingState(newState)
+      if (matches) {
+        const nextIndex = typedIndex + 1
+        setTypedIndex(nextIndex)
         incrementCombo()
-        audio.keyPress()
-      } else if (result === 'complete') {
-        setTypingState(newState)
-        incrementCombo()
-        handleWordComplete()
+
+        if (nextIndex >= commandText.length) {
+          handleWordComplete()
+        } else {
+          audio.keyPress()
+        }
       } else {
         resetCombo()
         audio.wrongKey()
@@ -196,7 +186,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [bonusPhase, typingState, pending, audio, handleWordComplete, incrementCombo, resetCombo])
+  }, [bonusPhase, typedIndex, commandText, pending, audio, handleWordComplete, incrementCombo, resetCombo])
 
   // ── Render phases ──
 
@@ -243,7 +233,28 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
           <div ref={cardRef}>
             <Card className="mb-3 bonus-card" glow={cardGlow}>
-              <WordDisplay word={bonusWord.word} romaji={displayRomaji} typedLength={typedLength} />
+              {/* Command display with character-by-character progress */}
+              <div className="text-center py-3">
+                <div className="text-xs text-amber-400/50 mb-2 tracking-wider">
+                  {bonusWord.flavor}
+                </div>
+                <div className="text-3xl font-mono font-bold tracking-[3px] break-all leading-relaxed">
+                  {commandText.split('').map((char, i) => (
+                    <span
+                      key={`${bonusWordIdx}-${i}`}
+                      className={`transition-all duration-100 ${
+                        i < typedIndex
+                          ? 'text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]'
+                          : i === typedIndex
+                            ? 'text-white underline decoration-amber-400 decoration-2 underline-offset-4'
+                            : 'text-white/30'
+                      }`}
+                    >
+                      {char === ' ' ? '\u00A0' : char}
+                    </span>
+                  ))}
+                </div>
+              </div>
               {/* Bonus multiplier badge */}
               <div className="min-h-9 mt-2 flex items-center justify-center">
                 <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full
@@ -274,9 +285,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             `}
           >
             <span className="text-amber-100/80">
-              {typingState
-                ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
-                : ''}
+              {commandText.slice(0, typedIndex)}
             </span>
             <span className="animate-pulse text-amber-400/40 ml-0.5">|</span>
           </div>

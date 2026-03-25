@@ -167,6 +167,9 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         return
       }
 
+      // Bonus mode has its own keydown handler
+      if (bonusPhase !== 'inactive') return
+
       if (pending || !typingState) return
 
       if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
@@ -214,13 +217,17 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [typingState, pending, audio, handleWordComplete])
+  }, [typingState, pending, audio, handleWordComplete, bonusPhase])
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
-    // Resume the current word timer
+    // Resume the global timer with remaining time
+    const remaining = getRemaining()
+    if (remaining > 0) {
+      startGlobal(remaining)
+    }
     startNextWord()
-  }, [startNextWord])
+  }, [startNextWord, getRemaining, startGlobal])
 
   if (!word) return null
 
