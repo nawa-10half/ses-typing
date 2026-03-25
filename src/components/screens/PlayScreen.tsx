@@ -158,6 +158,23 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     setTimeout(advanceToNext, 1200)
   }, [completeWord, audio, addTime, particles, spawnFloat, advanceToNext])
 
+  // ── デバッグ: Backquote(`) 5連打でボーナス発動 ──
+  const cheatRef = useRef({ count: 0, timer: 0 })
+  const handleCheatKey = useCallback((e: KeyboardEvent) => {
+    if (e.key !== '`') return false
+    const c = cheatRef.current
+    c.count++
+    clearTimeout(c.timer)
+    c.timer = window.setTimeout(() => { c.count = 0 }, 1000)
+    if (c.count >= 5 && !bonusTriggered && bonusPhase === 'inactive') {
+      c.count = 0
+      stopGlobal()
+      enterBonus()
+      return true
+    }
+    return false
+  }, [bonusTriggered, bonusPhase, stopGlobal, enterBonus])
+
   // ── キー入力 ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -166,6 +183,9 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         setScreen('title')
         return
       }
+
+      // Debug cheat key
+      if (handleCheatKey(e)) return
 
       // Bonus mode has its own keydown handler
       if (bonusPhase !== 'inactive') return
@@ -217,7 +237,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [typingState, pending, audio, handleWordComplete, bonusPhase])
+  }, [typingState, pending, audio, handleWordComplete, bonusPhase, handleCheatKey])
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
