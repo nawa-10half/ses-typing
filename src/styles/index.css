@@ -240,6 +240,40 @@ html[data-theme="light"] .orb-4 { background: radial-gradient(circle, rgba(236, 
   background-clip: text;
 }
 
+/* ── Rank tier gradient text ── */
+.text-gradient-rank-gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 14px rgba(251,191,36,0.6));
+}
+.text-gradient-rank-purple {
+  background: linear-gradient(135deg, #a855f7, #ec4899, #f43f5e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 12px rgba(168,85,247,0.5));
+}
+.text-gradient-rank-cyan {
+  background: linear-gradient(135deg, #22d3ee, #3b82f6, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 10px rgba(34,211,238,0.4));
+}
+.text-gradient-rank-emerald {
+  background: linear-gradient(135deg, #34d399, #2dd4bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(52,211,153,0.4));
+}
+.text-gradient-rank-white {
+  color: rgba(255,255,255,0.8);
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.2));
+}
+
 /* ── Card gradient border ── */
 .card-glow {
   position: relative;

@@ -32,66 +32,13 @@ const PHASE_DELAYS: Record<RevealPhase, number> = {
   done: 0,
 }
 
-const gradientText: React.CSSProperties = {
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-}
-
-function getRankStyle(months: number): { className: string; style: React.CSSProperties } {
-  if (months >= 720) {
-    return {
-      className: 'result-rank-rainbow',
-      style: { filter: 'drop-shadow(0 0 16px rgba(255,255,255,0.5))' },
-    }
-  }
-  if (months >= 360) {
-    return {
-      className: '',
-      style: {
-        ...gradientText,
-        backgroundImage: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706)',
-        filter: 'drop-shadow(0 0 14px rgba(251,191,36,0.6))',
-      },
-    }
-  }
-  if (months >= 120) {
-    return {
-      className: '',
-      style: {
-        ...gradientText,
-        backgroundImage: 'linear-gradient(135deg, #a855f7, #ec4899, #f43f5e)',
-        filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.5))',
-      },
-    }
-  }
-  if (months >= 60) {
-    return {
-      className: '',
-      style: {
-        ...gradientText,
-        backgroundImage: 'linear-gradient(135deg, #22d3ee, #3b82f6, #818cf8)',
-        filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.4))',
-      },
-    }
-  }
-  if (months >= 24) {
-    return {
-      className: '',
-      style: {
-        ...gradientText,
-        backgroundImage: 'linear-gradient(135deg, #34d399, #2dd4bf)',
-        filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.4))',
-      },
-    }
-  }
-  return {
-    className: '',
-    style: {
-      color: 'rgba(255,255,255,0.8)',
-      filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.2))',
-    },
-  }
+export function getRankClassName(months: number): string {
+  if (months >= 720) return 'result-rank-rainbow'
+  if (months >= 360) return 'text-gradient-rank-gold'
+  if (months >= 120) return 'text-gradient-rank-purple'
+  if (months >= 60) return 'text-gradient-rank-cyan'
+  if (months >= 24) return 'text-gradient-rank-emerald'
+  return 'text-gradient-rank-white'
 }
 
 const itemVariants = {
@@ -163,7 +110,7 @@ export function ResultReveal({
   }, [totalMonths, rankTitle, rankComment, courseName, kps, accuracy, maxCombo])
 
   const phaseIdx = PHASES.indexOf(phase)
-  const rankStyle = getRankStyle(totalMonths)
+  const rankClass = getRankClassName(totalMonths)
 
   return (
     <motion.div
@@ -207,8 +154,7 @@ export function ResultReveal({
               variants={rankVariants}
               initial="hidden"
               animate="visible"
-              className={`text-[28px] font-extrabold mb-3 ${rankStyle.className}`}
-              style={rankStyle.style}
+              className={`text-[28px] font-extrabold mb-3 ${rankClass}`}
             >
               {rankTitle}
             </motion.div>

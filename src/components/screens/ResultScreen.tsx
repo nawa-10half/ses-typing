@@ -6,7 +6,7 @@ import { MetricGrid } from '../ui/MetricGrid.tsx'
 import { HighScoreList } from '../ui/HighScoreList.tsx'
 import { RankingBoard } from '../ui/RankingBoard.tsx'
 import { NicknameDialog } from '../ui/NicknameDialog.tsx'
-import { ResultReveal } from '../ui/ResultReveal.tsx'
+import { ResultReveal, getRankClassName } from '../ui/ResultReveal.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
 import { submitScore } from '../../lib/api.ts'
@@ -101,7 +101,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         <p className="text-[10px] text-white/40 tracking-[3px] uppercase mb-2">
           {courseName}
         </p>
-        <h2 className="text-[32px] font-extrabold animate-stage-title text-gradient-rank animate-neon-pulse">
+        <h2 className={`text-[32px] font-extrabold animate-stage-title ${getRankClassName(results.totalMonths)}`}>
           {results.rank.rank}
         </h2>
         <p className="text-[13px] text-white/50 leading-[1.9] mb-6 mt-2">
