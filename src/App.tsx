@@ -27,11 +27,11 @@ function AdBanner() {
   return (
     <ins
       className="adsbygoogle"
-      style={{ display: 'block' }}
+      style={{ display: 'block', maxHeight: '90px', overflow: 'hidden' }}
       data-ad-client="ca-pub-4773362073066777"
       data-ad-slot="3879802428"
-      data-ad-format="auto"
-      data-full-width-responsive="true"
+      data-ad-format="horizontal"
+      data-full-width-responsive="false"
     />
   )
 }
