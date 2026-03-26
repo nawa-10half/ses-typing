@@ -56,9 +56,14 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
   // ── Phase transitions ──
   useEffect(() => {
+    if (bonusPhase === 'bsod') {
+      audio.bsodBeep()
+      const t = setTimeout(() => setBonusPhase('blackout'), 600)
+      return () => clearTimeout(t)
+    }
     if (bonusPhase === 'blackout') {
       audio.bonusBlackout()
-      const t = setTimeout(() => setBonusPhase('intro'), 600)
+      const t = setTimeout(() => setBonusPhase('intro'), 300)
       return () => clearTimeout(t)
     }
     if (bonusPhase === 'intro') {
@@ -184,6 +189,22 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   }, [bonusPhase, typedIndex, commandText, pending, audio, handleWordComplete, incrementCombo, resetCombo])
 
   // ── Render phases ──
+
+  if (bonusPhase === 'bsod') {
+    return (
+      <div className="bonus-overlay" style={{ background: '#0078d7' }}>
+        <div className="text-white font-mono text-center px-8 max-w-[500px]">
+          <div className="text-[72px] leading-none mb-4">:(</div>
+          <div className="text-[15px] leading-relaxed">
+            お使いのPCで問題が発生したため、再起動する必要があります。エラー情報を収集しています。自動的に再起動します。
+          </div>
+          <div className="mt-6 text-[13px] text-white/70">
+            停止コード: BONUS_TIME_OVERFLOW
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (bonusPhase === 'blackout') {
     return (

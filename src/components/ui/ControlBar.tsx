@@ -7,7 +7,6 @@ interface ControlBarProps {
 
 export function ControlBar({ audio }: ControlBarProps) {
   const soundEnabled = useGameStore(s => s.soundEnabled)
-  const toggleTheme = useGameStore(s => s.toggleTheme)
   const toggleSound = useGameStore(s => s.toggleSound)
 
   const handleSound = () => {
@@ -29,19 +28,6 @@ export function ControlBar({ audio }: ControlBarProps) {
         "
       >
         {soundEnabled ? '\u266A' : '\u00D7'}
-      </button>
-      <button
-        onClick={toggleTheme}
-        title="テーマ切替"
-        className="
-          backdrop-blur-xl bg-white/5 border border-white/10
-          rounded-lg w-9 h-9 flex items-center justify-center
-          cursor-pointer text-base text-white/60
-          hover:bg-white/10 hover:border-white/20
-          transition-all duration-200
-        "
-      >
-        &#x25D0;
       </button>
     </div>
   )

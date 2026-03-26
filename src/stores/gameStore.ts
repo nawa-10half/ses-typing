@@ -11,7 +11,7 @@ import {
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
 import { BONUS_WORDS, BONUS_MULTIPLIER } from '../lib/constants.ts'
 
-export type BonusPhase = 'inactive' | 'blackout' | 'intro' | 'active' | 'outro'
+export type BonusPhase = 'inactive' | 'bsod' | 'blackout' | 'intro' | 'active' | 'outro'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -247,7 +247,7 @@ export const useGameStore = create<GameState>()(
       enterBonus: () => {
         const shuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
         set({
-          bonusPhase: 'blackout' as BonusPhase,
+          bonusPhase: 'bsod' as BonusPhase,
           bonusWords: shuffled,
           bonusWordIdx: 0,
           pending: true,

@@ -101,6 +101,13 @@ export class AudioEngine {
     this._noise(0.1, 0.04, 0.5)
   }
 
+  // Bonus mode: BSOD beep (3 short beeps)
+  bsodBeep(): void {
+    for (let i = 0; i < 3; i++) {
+      this._tone(800, 0.08, 'square', 0.25, i * 0.12)
+    }
+  }
+
   // Bonus mode: CRT power-off "プチュン" sound
   bonusBlackout(): void {
     if (!this.enabled || !this.ctx || !this.masterGain) return
