@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ses-typing.pages.dev/sitemap.xml

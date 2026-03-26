@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { margin: 0; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; }
+canvas { border: 1px solid #333; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1200" height="630"></canvas>
+<script>
+const W = 1200, H = 630;
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// Background gradient
+const bg = ctx.createLinearGradient(0, 0, 0, H);
+bg.addColorStop(0, '#0d1117');
+bg.addColorStop(0.5, '#0a1628');
+bg.addColorStop(1, '#0f1f3a');
+ctx.fillStyle = bg;
+ctx.fillRect(0, 0, W, H);
+
+// Glow effects
+ctx.save();
+ctx.globalAlpha = 0.15;
+const glow1 = ctx.createRadialGradient(600, 150, 0, 600, 150, 200);
+glow1.addColorStop(0, '#4488ff');
+glow1.addColorStop(1, 'transparent');
+ctx.fillStyle = glow1;
+ctx.fillRect(0, 0, W, H);
+const glow2 = ctx.createRadialGradient(850, 100, 0, 850, 100, 150);
+glow2.addColorStop(0, '#44ff88');
+glow2.addColorStop(1, 'transparent');
+ctx.fillStyle = glow2;
+ctx.fillRect(0, 0, W, H);
+ctx.restore();
+
+// Skyline buildings
+const buildings = [
+  { w: 30, h: 80 }, { w: 45, h: 120, lit: true }, { w: 27, h: 60 },
+  { w: 52, h: 150, lit: true }, { w: 33, h: 90 }, { w: 42, h: 130, lit: true },
+  { w: 60, h: 160 }, { w: 22, h: 70 }, { w: 48, h: 140, lit: true },
+  { w: 30, h: 85 }, { w: 37, h: 110, lit: true }, { w: 52, h: 145 },
+  { w: 27, h: 75 }, { w: 33, h: 100, lit: true },
+  { w: 40, h: 95 }, { w: 55, h: 135, lit: true }, { w: 28, h: 65 },
+  { w: 48, h: 125, lit: true }, { w: 35, h: 88 },
+];
+ctx.save();
+ctx.globalAlpha = 0.35;
+let bx = (W - buildings.reduce((s, b) => s + b.w + 4, 0)) / 2;
+buildings.forEach(b => {
+  const bh = Math.min(b.h, 120);
+  const by = H - bh;
+  const grad = ctx.createLinearGradient(0, by, 0, H);
+  grad.addColorStop(0, '#1a5c3a');
+  grad.addColorStop(1, '#0d3320');
+  ctx.fillStyle = grad;
+  ctx.fillRect(bx, by, b.w, bh);
+  // Windows
+  for (let wy = by + 6; wy < H - 8; wy += 12) {
+    ctx.fillStyle = b.lit ? 'rgba(255,200,50,0.4)' : 'rgba(255,200,50,0.15)';
+    ctx.fillRect(bx + 4, wy, b.w - 8, 4);
+  }
+  bx += b.w + 4;
+});
+ctx.restore();
+
+// Title text
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+
+// Main title
+ctx.save();
+ctx.font = '900 72px "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+const titleGrad = ctx.createLinearGradient(0, 200, 0, 310);
+titleGrad.addColorStop(0, '#ffffff');
+titleGrad.addColorStop(0.5, '#88ccff');
+titleGrad.addColorStop(1, '#4488cc');
+// Shadow
+ctx.fillStyle = '#0a2040';
+ctx.fillText('SESタイピング', W/2 + 3, H/2 - 40 + 4);
+// Glow
+ctx.shadowColor = 'rgba(64,160,255,0.5)';
+ctx.shadowBlur = 20;
+ctx.fillStyle = titleGrad;
+ctx.fillText('SESタイピング', W/2, H/2 - 40);
+ctx.restore();
+
+// Subtitle
+ctx.save();
+ctx.font = '700 30px "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+ctx.fillStyle = '#3a2a00';
+ctx.fillText('〜あの案件に常駐せよ〜', W/2 + 2, H/2 + 40 + 2);
+ctx.shadowColor = 'rgba(255,200,0,0.5)';
+ctx.shadowBlur = 12;
+ctx.fillStyle = '#ffdd44';
+ctx.fillText('〜あの案件に常駐せよ〜', W/2, H/2 + 40);
+ctx.restore();
+
+// Tagline
+ctx.save();
+ctx.font = '400 16px "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif';
+ctx.fillStyle = 'rgba(255,255,255,0.4)';
+ctx.fillText('SESあるあるの単語をローマ字で打ち抜くタイピングゲーム', W/2, H/2 + 100);
+ctx.restore();
+
+// Download link
+setTimeout(() => {
+  const a = document.createElement('a');
+  a.download = 'og-image.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}, 500);
+</script>
+</body>
+</html>
