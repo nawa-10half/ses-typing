@@ -103,7 +103,7 @@ export function ResultReveal({
       `Speed: ${kps} 打/秒 | Accuracy: ${accuracy}% | Max Combo: ${maxCombo}`,
       '',
       '#SESタイピング #タイピングゲーム',
-      'https://ses-typing.pages.dev/',
+      'https://ses-typing.pages.dev',
     ].join('\n')
     const url = `https://x.com/intent/post?text=${encodeURIComponent(text)}`
     window.open(url, '_blank', 'noopener,noreferrer')
