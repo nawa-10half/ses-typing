@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatMonths } from '../../lib/gameLogic.ts'
+import type { AudioEngine } from '../../lib/audioEngine.ts'
+
+interface ParticleActions {
+  confetti(count: number): void
+}
 
 interface ResultRevealProps {
   totalMonths: number
@@ -10,6 +15,8 @@ interface ResultRevealProps {
   kps: number
   accuracy: number
   maxCombo: number
+  audio: AudioEngine
+  particles: ParticleActions | null | undefined
   onComplete: () => void
 }
 
@@ -23,9 +30,79 @@ const PHASE_DELAYS: Record<RevealPhase, number> = {
   done: 0,
 }
 
+function getRankStyle(months: number): { className: string; style: React.CSSProperties } {
+  if (months >= 720) {
+    // 60年〜: レインボー
+    return {
+      className: 'result-rank-rainbow',
+      style: { filter: 'drop-shadow(0 0 16px rgba(255,255,255,0.5))' },
+    }
+  }
+  if (months >= 360) {
+    // 30年〜: ゴールド
+    return {
+      className: '',
+      style: {
+        background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 14px rgba(251,191,36,0.6))',
+      },
+    }
+  }
+  if (months >= 120) {
+    // 10年〜: 紫〜ピンク
+    return {
+      className: '',
+      style: {
+        background: 'linear-gradient(135deg, #a855f7, #ec4899, #f43f5e)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.5))',
+      },
+    }
+  }
+  if (months >= 60) {
+    // 5年〜: シアン
+    return {
+      className: '',
+      style: {
+        background: 'linear-gradient(135deg, #22d3ee, #3b82f6, #818cf8)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.4))',
+      },
+    }
+  }
+  if (months >= 24) {
+    // 2年〜: エメラルド
+    return {
+      className: '',
+      style: {
+        background: 'linear-gradient(135deg, #34d399, #2dd4bf)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.4))',
+      },
+    }
+  }
+  // 〜2年: 白
+  return {
+    className: '',
+    style: {
+      color: 'rgba(255,255,255,0.8)',
+      filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.2))',
+    },
+  }
+}
+
 export function ResultReveal({
   totalMonths, rankTitle, rankComment, courseName,
-  kps, accuracy, maxCombo, onComplete,
+  kps, accuracy, maxCombo, audio, particles, onComplete,
 }: ResultRevealProps) {
   const [phase, setPhase] = useState<RevealPhase>('label')
 
@@ -37,6 +114,19 @@ export function ResultReveal({
     const t = setTimeout(() => setPhase(phases[idx + 1]), delay)
     return () => clearTimeout(t)
   }, [phase])
+
+  // SE per phase
+  useEffect(() => {
+    if (phase === 'label') audio.revealStep()
+    if (phase === 'months') audio.revealStep()
+    if (phase === 'rank') audio.revealRank()
+    if (phase === 'comment') audio.revealStep()
+    if (phase === 'done') {
+      audio.revealFanfare()
+      particles?.confetti(120)
+      setTimeout(() => particles?.confetti(60), 500)
+    }
+  }, [phase, audio, particles])
 
   const handleSkip = useCallback(() => {
     if (phase !== 'done') {
@@ -63,6 +153,7 @@ export function ResultReveal({
   }, [totalMonths, rankTitle, rankComment, courseName, kps, accuracy, maxCombo])
 
   const phaseIdx = ['label', 'months', 'rank', 'comment', 'done'].indexOf(phase)
+  const rankStyle = getRankStyle(totalMonths)
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.9 },
@@ -125,10 +216,8 @@ export function ResultReveal({
               variants={rankVariants}
               initial="hidden"
               animate="visible"
-              className="text-[28px] font-extrabold mb-3 text-gradient-rank"
-              style={{
-                filter: 'drop-shadow(0 0 12px rgba(129,140,248,0.4))',
-              }}
+              className={`text-[28px] font-extrabold mb-3 ${rankStyle.className}`}
+              style={rankStyle.style}
             >
               {rankTitle}
             </motion.div>

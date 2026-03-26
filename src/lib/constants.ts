@@ -268,7 +268,16 @@ export const BONUS_TRIGGER_TABLE: { min: number; chance: number }[] = [
 
 // min = 必要月数
 export const RANKS: RankInfo[] = [
+  { min: 1200, rank: '常駐の概念を超えた者', comment: '100年常駐。もはや伝説を超えた神話' },
+  { min: 960, rank: 'SES界の生ける化石', comment: '80年常駐。あなたの常駐歴が歴史の教科書に載る' },
+  { min: 720, rank: '常駐の仙人', comment: '60年常駐。悟りを開き、客先と一体化した' },
+  { min: 600, rank: '人間国宝級常駐員', comment: '50年常駐。国が保護すべき存在' },
+  { min: 480, rank: '常駐界のレジェンド', comment: '40年常駐。入社から定年まで客先にいた男' },
+  { min: 360, rank: 'SES皇帝', comment: '30年常駐。客先の社長より社歴が長い' },
+  { min: 240, rank: '客先の主', comment: '20年常駐。もう自社の人間に顔を忘れられた' },
+  { min: 180, rank: '伝説の常駐員', comment: '15年常駐。客先のビル建て替えを2回経験' },
   { min: 120, rank: '永久常駐の神', comment: '10年常駐。もはやSES沼の主' },
+  { min: 84, rank: 'SESの重鎮', comment: '7年常駐。後輩が3回転職しても自分はここにいる' },
   { min: 60, rank: 'ベテラン常駐員', comment: '5年戦士。現場の生き字引' },
   { min: 36, rank: '中堅エンジニア', comment: '3年目。そろそろ後輩の面倒も見る' },
   { min: 24, rank: '現場に馴染んだ人', comment: '2年経過。もう客先が実家' },

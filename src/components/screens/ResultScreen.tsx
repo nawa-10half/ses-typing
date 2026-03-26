@@ -37,11 +37,11 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const [submitted, setSubmitted] = useState(false)
   const [submittedId, setSubmittedId] = useState<string | null>(null)
 
-  useEffect(() => {
-    audio.gameComplete()
-    setTimeout(() => particles?.confetti(120), 300)
-    setTimeout(() => particles?.confetti(60), 800)
+  const handleRevealComplete = useCallback(() => {
+    setRevealDone(true)
+  }, [])
 
+  useEffect(() => {
     saveScore({
       score: results.score,
       accuracy: results.accuracy,
@@ -85,7 +85,9 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         kps={results.kps}
         accuracy={results.accuracy}
         maxCombo={results.maxCombo}
-        onComplete={() => setRevealDone(true)}
+        audio={audio}
+        particles={particles}
+        onComplete={handleRevealComplete}
       />
     )
   }

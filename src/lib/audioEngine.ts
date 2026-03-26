@@ -162,6 +162,37 @@ export class AudioEngine {
     this._tone(262, 0.6, 'triangle', 0.1, 0.6)
   }
 
+  // Result reveal: step sound (each item appears)
+  revealStep(): void {
+    this._tone(880, 0.08, 'sine', 0.2)
+    this._tone(1320, 0.06, 'sine', 0.1, 0.03)
+  }
+
+  // Result reveal: rank appears (dramatic hit)
+  revealRank(): void {
+    this._tone(523, 0.3, 'sine', 0.25)
+    this._tone(784, 0.25, 'sine', 0.2, 0.05)
+    this._tone(1047, 0.2, 'sine', 0.15, 0.1)
+    this._noise(0.06, 0.08)
+  }
+
+  // Result reveal: fanfare "テケテテケテテーン"
+  revealFanfare(): void {
+    // テケテ
+    const run1 = [784, 988, 784, 988]
+    run1.forEach((f, i) => this._tone(f, 0.08, 'sine', 0.2, i * 0.07))
+    // テケテ
+    const run2 = [1047, 1319, 1047, 1319]
+    run2.forEach((f, i) => this._tone(f, 0.08, 'sine', 0.22, 0.32 + i * 0.07))
+    // テーン！ (final chord)
+    this._tone(1568, 0.6, 'sine', 0.3, 0.62)
+    this._tone(1047, 0.6, 'sine', 0.2, 0.62)
+    this._tone(784, 0.6, 'sine', 0.15, 0.62)
+    // Sparkle
+    ;[2093, 2637, 3136].forEach((f, i) =>
+      this._tone(f, 0.3, 'sine', 0.08, 0.65 + i * 0.05))
+  }
+
   gameComplete(): void {
     const melody = [523, 659, 784, 1047, 784, 1047, 1319]
     melody.forEach((f, i) => this._tone(f, 0.35, 'sine', 0.2, i * 0.15))

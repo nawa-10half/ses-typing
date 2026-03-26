@@ -418,6 +418,20 @@ html[data-theme="light"] .orb-4 { background: radial-gradient(circle, rgba(236, 
   text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
 }
 
+/* ── Result reveal rainbow rank ── */
+.result-rank-rainbow {
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #a855f7, #ec4899, #ef4444);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rainbowShift 2s linear infinite;
+}
+@keyframes rainbowShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
 /* ── Particle canvas ── */
 #particle-canvas {
   position: fixed;

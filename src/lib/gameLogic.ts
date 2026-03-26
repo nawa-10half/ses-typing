@@ -5,7 +5,7 @@ import { RANKS, BONUS_TRIGGER_TABLE } from './constants.ts'
 export const MS_PER_MONTH = 2000
 
 /** タイプミス時のペナルティ (ms) */
-export const MISS_PENALTY_MS = 100
+export const MISS_PENALTY_MS = 200
 
 export function getComboLevel(combo: number): ComboLevel {
   if (combo >= 80) return 'max'

@@ -337,8 +337,8 @@ export function PlayScreen({ audio }: PlayScreenProps) {
           {/* フレーバーテキスト（コメント風） */}
           <div className="min-h-5 mb-3">
             {flavorText && (
-              <span className="text-[16px] text-emerald-500/30 italic">
-                <span className="text-emerald-500/50"># </span>{flavorText}
+              <span className="text-[16px] text-white/50 italic">
+                <span className="text-white/60"># </span>{flavorText}
               </span>
             )}
           </div>
