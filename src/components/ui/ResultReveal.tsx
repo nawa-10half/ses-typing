@@ -50,7 +50,7 @@ function getRankStyle(months: number): { className: string; style: React.CSSProp
       className: '',
       style: {
         ...gradientText,
-        background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706)',
+        backgroundImage: 'linear-gradient(135deg, #fbbf24, #f59e0b, #fde68a, #d97706)',
         filter: 'drop-shadow(0 0 14px rgba(251,191,36,0.6))',
       },
     }
@@ -60,7 +60,7 @@ function getRankStyle(months: number): { className: string; style: React.CSSProp
       className: '',
       style: {
         ...gradientText,
-        background: 'linear-gradient(135deg, #a855f7, #ec4899, #f43f5e)',
+        backgroundImage: 'linear-gradient(135deg, #a855f7, #ec4899, #f43f5e)',
         filter: 'drop-shadow(0 0 12px rgba(168,85,247,0.5))',
       },
     }
@@ -70,7 +70,7 @@ function getRankStyle(months: number): { className: string; style: React.CSSProp
       className: '',
       style: {
         ...gradientText,
-        background: 'linear-gradient(135deg, #22d3ee, #3b82f6, #818cf8)',
+        backgroundImage: 'linear-gradient(135deg, #22d3ee, #3b82f6, #818cf8)',
         filter: 'drop-shadow(0 0 10px rgba(34,211,238,0.4))',
       },
     }
@@ -80,7 +80,7 @@ function getRankStyle(months: number): { className: string; style: React.CSSProp
       className: '',
       style: {
         ...gradientText,
-        background: 'linear-gradient(135deg, #34d399, #2dd4bf)',
+        backgroundImage: 'linear-gradient(135deg, #34d399, #2dd4bf)',
         filter: 'drop-shadow(0 0 8px rgba(52,211,153,0.4))',
       },
     }
