@@ -294,13 +294,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         `}
       >
         {/* タイトルバー */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-[#1a1a2e]/90 border-b border-white/[0.06]">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0d0d1a]/95 border-b border-white/[0.04]">
           <div className="flex gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-red-500/80" />
-            <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-            <span className="w-3 h-3 rounded-full bg-green-500/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
           </div>
-          <span className="text-[11px] text-white/30 font-mono flex-1 text-center">
+          <span className="text-[10px] text-white/20 font-mono flex-1 text-center">
             ses@客先常駐ビル:~/案件
           </span>
         </div>
@@ -309,15 +309,15 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         <div className="bg-[#0a0a14]/95 backdrop-blur-xl px-5 py-5 font-mono">
           {/* 単語出題 */}
           <div className="mb-3">
-            <span className="text-emerald-500/70 text-xs">$ echo </span>
-            <span className="text-3xl font-semibold tracking-[4px] text-white drop-shadow-[0_0_8px_rgba(129,140,248,0.15)]">
+            <span className="text-emerald-500/70 text-xs terminal-glow-dim">$ echo </span>
+            <span className="text-3xl font-semibold tracking-[4px] text-white terminal-glow">
               {word.word}
             </span>
           </div>
 
           {/* ローマ字ガイド */}
           <div className="mb-2">
-            <span className="text-white/20 text-xs">$ type </span>
+            <span className="text-emerald-500/40 text-xs terminal-glow-dim">$ type </span>
             <span className="text-lg tracking-wider break-all leading-relaxed">
               {displayRomaji.split('').map((char, i) => (
                 <span
@@ -334,11 +334,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
             </span>
           </div>
 
-          {/* フレーバーテキスト */}
+          {/* フレーバーテキスト（コメント風） */}
           <div className="min-h-5 mb-3">
-            <span className="text-[13px] text-white/40 italic">
-              {flavorText && `# ${flavorText}`}
-            </span>
+            {flavorText && (
+              <span className="text-[15px] text-emerald-500/30 italic">
+                <span className="text-emerald-500/50"># </span>{flavorText}
+              </span>
+            )}
           </div>
 
           {/* 入力行 */}
@@ -354,13 +356,13 @@ export function PlayScreen({ audio }: PlayScreenProps) {
               }
             `}
           >
-            <span className="text-emerald-500 mr-2 text-sm shrink-0">❯</span>
-            <span className="text-white/80 text-lg break-all leading-relaxed">
+            <span className="text-emerald-500/60 mr-1 text-xs shrink-0 terminal-glow-dim">$</span>
+            <span className="text-emerald-400/90 text-lg break-all leading-relaxed terminal-glow">
               {typingState
                 ? [...typingState.completedRomaji, typingState.inputBuffer].join('')
                 : ''}
             </span>
-            <span className="animate-pulse text-emerald-400/60 ml-0.5">▊</span>
+            <span className="terminal-cursor text-emerald-400/80 ml-0.5">▊</span>
           </div>
 
           {/* コンボ表示 */}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchRankings, type RankingEntry } from '../../lib/api.ts'
+import { formatMonths } from '../../lib/gameLogic.ts'
 
 const courseNames: Record<string, string> = {
   beginner: '初級',
@@ -49,7 +50,7 @@ export function RankingBoard({ courseId, highlightPlayerId }: RankingBoardProps)
                 </span>
                 <span className="flex items-center gap-3">
                   <span className="text-white/30">{r.kps}打/秒</span>
-                  <span className="min-w-[60px] text-right">{r.score}pts</span>
+                  <span className="min-w-[80px] text-right">{formatMonths(r.score)}</span>
                 </span>
               </div>
             )

@@ -7,6 +7,7 @@ import { useTimer } from '../../hooks/useTimer.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
 import { BONUS_MULTIPLIER, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
+import { formatMonths } from '../../lib/gameLogic.ts'
 
 interface BonusOverlayProps {
   audio: AudioEngine
@@ -33,7 +34,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
 
   const [timerPct, setTimerPct] = useState(1)
   const [inputState, setInputState] = useState<'neutral' | 'correct' | 'wrong'>('neutral')
-  const [flavorText, setFlavorText] = useState('')
   const [typedIndex, setTypedIndex] = useState(0)
   const [cardGlow, setCardGlow] = useState(false)
   const [scorePop, setScorePop] = useState(false)
@@ -89,7 +89,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     if (bonusWord && bonusPhase === 'active') {
       setTypedIndex(0)
       setInputState('neutral')
-      setFlavorText('')
+      // setFlavorText('')
     }
   }, [bonusWord, bonusPhase])
 
@@ -98,7 +98,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     handleBonusTimeout()
     audio.timeout()
     setInputState('wrong')
-    setFlavorText('時間切れ…')
+    // setFlavorText('時間切れ…')
     setTimeout(endBonus, 1500)
   }, [handleBonusTimeout, audio, endBonus])
 
@@ -121,7 +121,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     advanceBonus()
     setPending(false)
     setInputState('neutral')
-    setFlavorText('')
+    // setFlavorText('')
   }, [advanceBonus, setPending])
 
   // ── Word complete ──
@@ -130,7 +130,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     audio.bonusCorrect()
 
     setInputState('correct')
-    setFlavorText(`+${result.months}ヶ月　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
+    // setFlavorText(`+${result.months}ヶ月　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
     spawnFloat(`+${result.months}ヶ月`)
     setCardGlow(true)
     setScorePop(true)
@@ -233,7 +233,12 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
                 <div className="text-xs text-amber-400/50 mb-2 tracking-wider">
                   {bonusWord.flavor}
                 </div>
-                <div className="text-3xl font-mono font-bold tracking-[3px] break-all leading-relaxed">
+                <div className={`font-mono font-bold leading-relaxed ${
+                    commandText.length <= 10 ? 'text-3xl tracking-[3px]'
+                    : commandText.length <= 16 ? 'text-2xl tracking-[2px]'
+                    : commandText.length <= 22 ? 'text-xl tracking-[1px]'
+                    : 'text-lg tracking-[0.5px]'
+                  }`}>
                   {commandText.split('').map((char, i) => (
                     <span
                       key={`${bonusWordIdx}-${i}`}
@@ -285,12 +290,9 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             <span className="animate-pulse text-amber-400/40 ml-0.5">|</span>
           </div>
 
-          <div className="flex justify-between items-center mt-3 min-h-8 gap-2 relative">
-            <span className="text-xs text-amber-300/70 italic flex-1 text-left">
-              {flavorText}
-            </span>
+          <div className="flex justify-end items-center mt-3 min-h-8 gap-2 relative">
             <span className="text-[11px] text-amber-400/50 whitespace-nowrap tracking-wide">常駐</span>
-            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{score}ヶ月</span>
+            <span className={`text-[22px] font-bold min-w-[52px] text-right text-amber-300 ${scorePop ? 'animate-score-pop' : ''}`}>{formatMonths(score)}</span>
             <FloatScoreContainer items={floatItems} />
           </div>
         </div>

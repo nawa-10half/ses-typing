@@ -1,4 +1,5 @@
 import { useGameStore } from '../../stores/gameStore.ts'
+import { formatMonths } from '../../lib/gameLogic.ts'
 
 interface HighScoreListProps {
   currentScore: number
@@ -21,7 +22,7 @@ export function HighScoreList({ currentScore }: HighScoreListProps) {
               isCurrent ? 'text-emerald-400 font-bold' : 'text-white/60'
             }`}
           >
-            <span>#{i + 1} {s.score}ヶ月</span>
+            <span>#{i + 1} {formatMonths(s.score)}</span>
             <span>{s.accuracy}% {s.date}</span>
           </div>
         )

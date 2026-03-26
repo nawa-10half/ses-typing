@@ -30,6 +30,7 @@ export default function App() {
       <div className="orb orb-3" />
       <div className="orb orb-4" />
 
+      <div className="crt-scanlines" />
       <ParticleCanvas />
       <ControlBar audio={audio} />
 
