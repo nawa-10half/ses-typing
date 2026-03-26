@@ -37,9 +37,7 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const [submitted, setSubmitted] = useState(false)
   const [submittedId, setSubmittedId] = useState<string | null>(null)
 
-  const handleRevealComplete = useCallback(() => {
-    setRevealDone(true)
-  }, [])
+  const handleRevealComplete = () => setRevealDone(true)
 
   useEffect(() => {
     saveScore({

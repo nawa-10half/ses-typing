@@ -94,7 +94,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     if (bonusWord && bonusPhase === 'active') {
       setTypedIndex(0)
       setInputState('neutral')
-      // setFlavorText('')
     }
   }, [bonusWord, bonusPhase])
 
@@ -103,7 +102,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     handleBonusTimeout()
     audio.timeout()
     setInputState('wrong')
-    // setFlavorText('時間切れ…')
     setTimeout(endBonus, 1500)
   }, [handleBonusTimeout, audio, endBonus])
 
@@ -126,7 +124,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     advanceBonus()
     setPending(false)
     setInputState('neutral')
-    // setFlavorText('')
   }, [advanceBonus, setPending])
 
   // ── Word complete ──
@@ -135,7 +132,6 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     audio.bonusCorrect()
 
     setInputState('correct')
-    // setFlavorText(`+${result.months}ヶ月　x${BONUS_MULTIPLIER.toFixed(1)} ${result.flavor}`)
     spawnFloat(`+${result.months}ヶ月`)
     setCardGlow(true)
     setScorePop(true)
