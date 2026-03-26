@@ -230,7 +230,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
             <Card className="mb-3 bonus-card" glow={cardGlow}>
               {/* Command display with character-by-character progress */}
               <div className="text-center py-3">
-                <div className="text-xs text-amber-400/50 mb-2 tracking-wider">
+                <div className="text-sm text-amber-400/50 mb-2 tracking-wider">
                   {bonusWord.flavor}
                 </div>
                 <div className={`font-mono font-bold leading-relaxed ${

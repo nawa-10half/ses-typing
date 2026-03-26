@@ -3,12 +3,10 @@ import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
 import { Button } from '../ui/Button.tsx'
 import { MetricGrid } from '../ui/MetricGrid.tsx'
-import { SpeedChart } from '../ui/SpeedChart.tsx'
 import { HighScoreList } from '../ui/HighScoreList.tsx'
-import { WordLog } from '../ui/WordLog.tsx'
 import { RankingBoard } from '../ui/RankingBoard.tsx'
 import { NicknameDialog } from '../ui/NicknameDialog.tsx'
-import { showToast } from '../ui/Toast.tsx'
+import { ResultReveal } from '../ui/ResultReveal.tsx'
 import { useGameStore } from '../../stores/gameStore.ts'
 import { useCourses } from '../../hooks/useCourses.ts'
 import { submitScore } from '../../lib/api.ts'
@@ -35,9 +33,9 @@ export function ResultScreen({ audio }: ResultScreenProps) {
   const activeCourse = courses.find(c => c.id === activeCourseId)
   const courseName = activeCourse?.name ?? ''
 
+  const [revealDone, setRevealDone] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submittedId, setSubmittedId] = useState<string | null>(null)
-  const [globalRank, setGlobalRank] = useState<number | null>(null)
 
   useEffect(() => {
     audio.gameComplete()
@@ -69,7 +67,6 @@ export function ResultScreen({ audio }: ResultScreenProps) {
       kps: results.kps,
     }).then(res => {
       setSubmittedId(res.id)
-      setGlobalRank(res.globalRank)
     }).catch(() => {})
   }, [player.id, results, setNickname])
 
@@ -77,23 +74,19 @@ export function ResultScreen({ audio }: ResultScreenProps) {
     if (activeCourse) startGame(activeCourse)
   }
 
-  const handleShare = () => {
-    const lines = [
-      '\uD83C\uDFAE SESタイピング 〜あの案件に常駐せよ〜',
-      `\uD83D\uDCCB ${courseName}`,
-      '',
-      `\uD83C\uDFC6 ${results.rank.rank}`,
-      `\uD83D\uDCDD 常駐期間: ${formatMonths(results.totalMonths)}`,
-      `\u26A1 Speed: ${results.kps} 打/秒`,
-      `\uD83C\uDFAF Accuracy: ${results.accuracy}%`,
-      `\uD83D\uDD25 Max Combo: ${results.maxCombo}`,
-    ]
-    if (globalRank) lines.push(`\uD83C\uDF0D Global Rank: #${globalRank}`)
-    lines.push('', '#SESタイピング #タイピングゲーム')
-
-    navigator.clipboard.writeText(lines.join('\n')).then(
-      () => showToast('クリップボードにコピーしました'),
-      () => showToast('コピーに失敗しました'),
+  // ── ドラムロール演出 ──
+  if (!revealDone) {
+    return (
+      <ResultReveal
+        totalMonths={results.totalMonths}
+        rankTitle={results.rank.rank}
+        rankComment={results.rank.comment}
+        courseName={courseName}
+        kps={results.kps}
+        accuracy={results.accuracy}
+        maxCombo={results.maxCombo}
+        onComplete={() => setRevealDone(true)}
+      />
     )
   }
 
@@ -125,8 +118,6 @@ export function ResultScreen({ audio }: ResultScreenProps) {
           ]}
         />
 
-        <SpeedChart log={results.log} />
-
         {!submitted ? (
           <NicknameDialog defaultValue={player.nickname} onSubmit={handleNicknameSubmit} />
         ) : (
@@ -134,17 +125,11 @@ export function ResultScreen({ audio }: ResultScreenProps) {
         )}
 
         <HighScoreList currentScore={results.score} />
-        <WordLog log={results.log} />
 
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <Button className="flex-1" onClick={handleShare}>
-              シェア
-            </Button>
-            <Button variant="primary" className="flex-1" onClick={handleRetry}>
-              もう一度 →
-            </Button>
-          </div>
+          <Button variant="primary" className="w-full" onClick={handleRetry}>
+            もう一度 →
+          </Button>
           <button
             onClick={() => setScreen('title')}
             className="text-xs text-white/40 hover:text-white/60 transition-colors py-2 cursor-pointer"

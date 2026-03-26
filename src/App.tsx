@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { ParticleCanvas } from './components/canvas/ParticleCanvas.tsx'
 import { ControlBar } from './components/ui/ControlBar.tsx'
@@ -8,6 +8,33 @@ import { PlayScreen } from './components/screens/PlayScreen.tsx'
 import { ResultScreen } from './components/screens/ResultScreen.tsx'
 import { useAudioEngine } from './hooks/useAudioEngine.ts'
 import { useScreen, useGameStore } from './stores/gameStore.ts'
+
+declare global {
+  interface Window { adsbygoogle: unknown[] }
+}
+
+function AdBanner() {
+  const pushed = useRef(false)
+
+  useEffect(() => {
+    if (pushed.current) return
+    pushed.current = true
+    try {
+      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+    } catch { /* ad blocker */ }
+  }, [])
+
+  return (
+    <ins
+      className="adsbygoogle"
+      style={{ display: 'block' }}
+      data-ad-client="ca-pub-4773362073066777"
+      data-ad-slot="3879802428"
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+    />
+  )
+}
 
 export default function App() {
   const screen = useScreen()
@@ -46,8 +73,8 @@ export default function App() {
 
       {/* 広告バナーエリア */}
       <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-black/80 backdrop-blur-sm border-t border-white/[0.06]">
-        <div className="w-full max-w-[728px] h-[90px] flex items-center justify-center text-white/20 text-xs tracking-widest" id="ad-banner">
-          AD SPACE
+        <div className="w-full max-w-[728px]" id="ad-banner">
+          <AdBanner />
         </div>
       </div>
     </div>
