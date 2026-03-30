@@ -303,7 +303,7 @@ export const BONUS_TIME_LIMIT = 15000 // ボーナスタイム全体の制限時
 
 // ── SES揃い（スーパーボーナス）──
 export const SUPER_BONUS_TRIGGER_WORD = 'rm -rf /*'
-export const SUPER_BONUS_CHANCE = 0.5
+export const SUPER_BONUS_CHANCE = 1.0
 export const SUPER_BONUS_TYPE_WORDS = ['System', 'Engineering', 'Service'] as const
 
 export const REEL_SYMBOLS = [
