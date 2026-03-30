@@ -56,7 +56,7 @@ export interface CorrectResult {
   flavor: string
 }
 
-export type Screen = 'title' | 'play' | 'result'
+export type Screen = 'title' | 'play' | 'result' | 'privacy' | 'howto'
 
 export type ComboLevel = '0' | '1' | '2' | '3' | 'max'
 

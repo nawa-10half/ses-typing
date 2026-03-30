@@ -6,6 +6,8 @@ import { ToastContainer } from './components/ui/Toast.tsx'
 import { TitleScreen } from './components/screens/TitleScreen.tsx'
 import { PlayScreen } from './components/screens/PlayScreen.tsx'
 import { ResultScreen } from './components/screens/ResultScreen.tsx'
+import { PrivacyScreen } from './components/screens/PrivacyScreen.tsx'
+import { HowToScreen } from './components/screens/HowToScreen.tsx'
 import { useAudioEngine } from './hooks/useAudioEngine.ts'
 import { useScreen, useGameStore } from './stores/gameStore.ts'
 
@@ -66,14 +68,16 @@ export default function App() {
           {screen === 'title' && <TitleScreen key="title" />}
           {screen === 'play' && <PlayScreen key="play" audio={audio} />}
           {screen === 'result' && <ResultScreen key="result" audio={audio} />}
+          {screen === 'privacy' && <PrivacyScreen key="privacy" />}
+          {screen === 'howto' && <HowToScreen key="howto" />}
         </AnimatePresence>
       </div>
 
       <ToastContainer />
 
       {/* 広告バナーエリア */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-black/80 backdrop-blur-sm border-t border-white/[0.06]">
-        <div className="w-full max-w-[728px]" id="ad-banner">
+      <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center items-center gap-4 bg-black/80 backdrop-blur-sm border-t border-white/[0.06] py-1">
+        <div className="shrink-0">
           <AdBanner />
         </div>
       </div>

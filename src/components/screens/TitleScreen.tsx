@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card } from '../ui/Card.tsx'
 import { TitleArt } from '../ui/TitleArt.tsx'
@@ -16,6 +17,11 @@ const defaultBadge = { label: '—', color: 'bg-white/10 text-white/60 border-wh
 export function TitleScreen() {
   const startGame = useGameStore(s => s.startGame)
   const { courses } = useCourses()
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile('ontouchstart' in window && window.innerWidth < 768)
+  }, [])
 
   const handleSelect = (course: Course) => {
     startGame(course)
@@ -32,6 +38,12 @@ export function TitleScreen() {
         <div className="mb-8">
           <TitleArt />
         </div>
+
+        {isMobile && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[12px] text-amber-400/90 leading-relaxed">
+            PC（キーボード）での操作を推奨しています。スマートフォンでは正常に動作しない場合があります。
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           {courses.map(course => {
@@ -77,6 +89,24 @@ export function TitleScreen() {
           })}
         </div>
       </Card>
+
+      <footer className="mt-6 flex flex-col items-center gap-3 text-[11px] text-white/30">
+        <button
+          onClick={() => useGameStore.getState().setScreen('howto')}
+          className="hover:text-white/60 transition-colors cursor-pointer underline underline-offset-2"
+        >
+          遊び方
+        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => useGameStore.getState().setScreen('privacy')}
+            className="hover:text-white/60 transition-colors cursor-pointer underline underline-offset-2"
+          >
+            プライバシーポリシー
+          </button>
+        </div>
+        <p>&copy; {new Date().getFullYear()} 10HALF LLC</p>
+      </footer>
     </motion.div>
   )
 }

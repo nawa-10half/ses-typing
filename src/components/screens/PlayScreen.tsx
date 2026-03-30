@@ -176,7 +176,52 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     return false
   }, [bonusPhase, stopGlobal, enterBonus])
 
-  // ── キー入力 ──
+  // ── キー処理（共通） ──
+  const processCharKey = useCallback((key: string) => {
+    if (bonusPhase !== 'inactive') return
+    if (pending || !typingState) return
+    if (!/[a-z'\-]/.test(key)) return
+
+    const { state: newState, result } = processKey(typingState, key)
+
+    if (result === 'accept') {
+      setTypingState(newState)
+      const bonus = incrementCombo()
+      if (bonus.bonusMs > 0) {
+        addTime(bonus.bonusMs)
+        spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
+      }
+      audio.keyPress()
+
+      // Check bonus trigger (read fresh combo from store)
+      const freshCombo = useGameStore.getState().combo
+      if (shouldTriggerBonus(freshCombo)) {
+        resetCombo()
+        savedRemainingRef.current = getRemaining()
+        stopGlobal()
+        enterBonus()
+        return
+      }
+    } else if (result === 'complete') {
+      setTypingState(newState)
+      const bonus = incrementCombo()
+      if (bonus.bonusMs > 0) {
+        addTime(bonus.bonusMs)
+        spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
+      }
+      handleWordComplete()
+    } else {
+      resetCombo()
+      subtractTime(MISS_PENALTY_MS)
+      audio.wrongKey()
+      setInputState('wrong')
+      setTimeout(() => {
+        if (!pending) setInputState('neutral')
+      }, 200)
+    }
+  }, [typingState, pending, audio, handleWordComplete, bonusPhase, incrementCombo, addTime, spawnFloat, resetCombo, subtractTime, stopGlobal, enterBonus, getRemaining])
+
+  // ── キーボード入力（PC） ──
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -188,59 +233,16 @@ export function PlayScreen({ audio }: PlayScreenProps) {
       // Debug cheat key
       if (handleCheatKey(e)) return
 
-      // Bonus mode has its own keydown handler
-      if (bonusPhase !== 'inactive') return
-
-      if (pending || !typingState) return
-
       if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
       const key = e.key.toLowerCase()
-      if (!/[a-z'\-]/.test(key)) return
-
       e.preventDefault()
-
-      const { state: newState, result } = processKey(typingState, key)
-
-      if (result === 'accept') {
-        setTypingState(newState)
-        const bonus = incrementCombo()
-        if (bonus.bonusMs > 0) {
-          addTime(bonus.bonusMs)
-          spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
-        }
-        audio.keyPress()
-
-        // Check bonus trigger (read fresh combo from store)
-        const freshCombo = useGameStore.getState().combo
-        if (shouldTriggerBonus(freshCombo)) {
-          resetCombo()
-          savedRemainingRef.current = getRemaining()
-          stopGlobal()
-          enterBonus()
-          return
-        }
-      } else if (result === 'complete') {
-        setTypingState(newState)
-        const bonus = incrementCombo()
-        if (bonus.bonusMs > 0) {
-          addTime(bonus.bonusMs)
-          spawnFloat(`契約延長 +${(bonus.bonusMs / 1000).toFixed(0)}秒`)
-        }
-        handleWordComplete()
-      } else {
-        resetCombo()
-        subtractTime(MISS_PENALTY_MS)
-        audio.wrongKey()
-        setInputState('wrong')
-        setTimeout(() => {
-          if (!pending) setInputState('neutral')
-        }, 200)
-      }
+      processCharKey(key)
     }
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [typingState, pending, audio, handleWordComplete, bonusPhase, handleCheatKey])
+  }, [processCharKey, handleCheatKey, stopGlobal, setScreen])
+
 
   // ── Resume normal game after bonus ──
   const handleBonusEnd = useCallback(() => {
