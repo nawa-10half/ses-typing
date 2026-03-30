@@ -11,7 +11,11 @@ import {
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
 import { BONUS_WORDS, BONUS_MULTIPLIER } from '../lib/constants.ts'
 
-export type BonusPhase = 'inactive' | 'bsod' | 'blackout' | 'intro' | 'active' | 'outro'
+export type BonusPhase =
+  | 'inactive' | 'bsod' | 'blackout' | 'intro' | 'active' | 'outro'
+  | 'super-rm-exec' | 'super-blackout' | 'super-reels'
+  | 'super-type-system' | 'super-type-engineering' | 'super-type-service'
+  | 'super-celebration'
 
 function generateId(): string {
   return crypto.randomUUID()
@@ -71,6 +75,11 @@ interface GameState extends PersistedState {
   completeBonusWord: () => CorrectResult
   handleBonusTimeout: () => void
   advanceBonus: () => void
+
+  // Super bonus actions
+  enterSuperBonus: () => void
+  applySuperBonusScore: () => number
+  endSuperBonus: () => void
 
   saveScore: (entry: HighScoreEntry) => number
   toggleTheme: () => void
@@ -308,6 +317,21 @@ export const useGameStore = create<GameState>()(
           set({ bonusWordIdx: nextIdx })
         }
       },
+
+      enterSuperBonus: () => set({ bonusPhase: 'super-rm-exec' as BonusPhase }),
+
+      applySuperBonusScore: () => {
+        const state = get()
+        const added = state.score
+        set({
+          score: state.score * 2,
+          totalMonths: state.totalMonths + added,
+          log: [...state.log, { word: 'SES揃い', ok: true, pts: added, combo: 0, time: 0 }],
+        })
+        return added
+      },
+
+      endSuperBonus: () => set({ bonusPhase: 'inactive' as BonusPhase }),
 
       saveScore: (entry) => {
         const state = get()

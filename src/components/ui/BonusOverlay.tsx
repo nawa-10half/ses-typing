@@ -6,8 +6,9 @@ import { useGameStore, useBonusPhase, useCurrentBonusWord } from '../../stores/g
 import { useTimer } from '../../hooks/useTimer.ts'
 import type { AudioEngine } from '../../lib/audioEngine.ts'
 import { useParticles } from '../canvas/ParticleCanvas.tsx'
-import { BONUS_MULTIPLIER, BONUS_TIME_LIMIT } from '../../lib/constants.ts'
+import { BONUS_MULTIPLIER, BONUS_TIME_LIMIT, SUPER_BONUS_TRIGGER_WORD, SUPER_BONUS_CHANCE } from '../../lib/constants.ts'
 import { formatMonths } from '../../lib/gameLogic.ts'
+import { SuperBonusOverlay } from './SuperBonusOverlay.tsx'
 
 interface BonusOverlayProps {
   audio: AudioEngine
@@ -26,6 +27,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   const score = useGameStore(s => s.score)
   const pending = useGameStore(s => s.pending)
   const bonusWordIdx = useGameStore(s => s.bonusWordIdx)
+  const enterSuperBonus = useGameStore(s => s.enterSuperBonus)
   const setPending = useCallback((v: boolean) => useGameStore.setState({ pending: v }), [])
 
   const particles = useParticles()
@@ -131,6 +133,13 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     const result = completeBonusWord()
     audio.bonusCorrect()
 
+    // SES揃いトリガー判定: rm -rf /* 入力完了時に50%で発動
+    if (bonusWord?.word === SUPER_BONUS_TRIGGER_WORD && Math.random() < SUPER_BONUS_CHANCE) {
+      stopTimerTick()
+      enterSuperBonus()
+      return
+    }
+
     setInputState('correct')
     spawnFloat(`+${result.months}ヶ月`)
     setCardGlow(true)
@@ -144,7 +153,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
     }
 
     setTimeout(advanceBonusWord, 1200)
-  }, [completeBonusWord, audio, particles, spawnFloat, advanceBonusWord])
+  }, [completeBonusWord, audio, particles, spawnFloat, advanceBonusWord, bonusWord, stopTimerTick, enterSuperBonus])
 
   // ── Keydown handler (direct character input) ──
   useEffect(() => {
@@ -185,6 +194,11 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
   }, [bonusPhase, typedIndex, commandText, pending, audio, handleWordComplete, incrementCombo, resetCombo])
 
   // ── Render phases ──
+
+  // Super bonus phases → delegate to SuperBonusOverlay
+  if (bonusPhase.startsWith('super-')) {
+    return <SuperBonusOverlay audio={audio} onEnd={onEnd} />
+  }
 
   if (bonusPhase === 'bsod') {
     return (

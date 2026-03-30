@@ -55,5 +55,13 @@ export function useParticleSystem(canvasRef: React.RefObject<HTMLCanvasElement |
     systemRef.current?.emitBonusCorrect(x, y)
   }, [])
 
-  return { emitCorrect, emitWrong, emitCombo, confetti, screenFlash, emitBonusIntro, emitBonusGoldRain, emitBonusCorrect }
+  const emitReelStop = useCallback((x: number, y: number) => {
+    systemRef.current?.emitReelStop(x, y)
+  }, [])
+
+  const emitSuperCelebration = useCallback(() => {
+    systemRef.current?.emitSuperCelebration()
+  }, [])
+
+  return { emitCorrect, emitWrong, emitCombo, confetti, screenFlash, emitBonusIntro, emitBonusGoldRain, emitBonusCorrect, emitReelStop, emitSuperCelebration }
 }

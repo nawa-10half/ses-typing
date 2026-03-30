@@ -301,6 +301,49 @@ export const BONUS_MULTIPLIER = 7.0
 export const BONUS_WORD_COUNT = 3
 export const BONUS_TIME_LIMIT = 15000 // ボーナスタイム全体の制限時間 (ms)
 
+// ── SES揃い（スーパーボーナス）──
+export const SUPER_BONUS_TRIGGER_WORD = 'rm -rf /*'
+export const SUPER_BONUS_CHANCE = 0.5
+export const SUPER_BONUS_TYPE_WORDS = ['System', 'Engineering', 'Service'] as const
+
+export const REEL_SYMBOLS = [
+  'SES', 'Java', 'Excel', '客先', '単価',
+  '炎上', 'NULL', '404', 'Bug', '残業',
+] as const
+
+export const FAKE_FILE_PATHS = [
+  '/usr/lib/libpthread.so',
+  '/etc/passwd',
+  '/var/log/syslog',
+  '/home/ses-engineer/.bashrc',
+  '/opt/tomcat/webapps/ROOT',
+  '/usr/bin/python3',
+  '/etc/nginx/nginx.conf',
+  '/var/www/html/index.php',
+  '/home/ses-engineer/.ssh/id_rsa',
+  '/usr/local/bin/node',
+  '/etc/hosts',
+  '/var/lib/mysql/ibdata1',
+  '/usr/share/java/commons-lang.jar',
+  '/opt/app/config/production.yml',
+  '/home/ses-engineer/Documents/スキルシート.xlsx',
+  '/tmp/build-cache/node_modules',
+  '/var/run/docker.sock',
+  '/etc/systemd/system/app.service',
+  '/home/ses-engineer/.gitconfig',
+  '/usr/lib/jvm/java-11-openjdk',
+  '/opt/redis/dump.rdb',
+  '/var/log/app/error.log',
+  '/etc/crontab',
+  '/home/ses-engineer/月次報告書.docx',
+  '/usr/local/share/ca-certificates',
+  '/opt/app/src/main/java/App.java',
+  '/var/backups/daily.tar.gz',
+  '/etc/ssl/private/server.key',
+  '/home/ses-engineer/.vimrc',
+  '/usr/lib/systemd/systemd',
+]
+
 /** コンボ数に応じたボーナス突入確率テーブル */
 export const BONUS_TRIGGER_TABLE: { min: number; chance: number }[] = [
   { min: 100, chance: 1 / 16 },

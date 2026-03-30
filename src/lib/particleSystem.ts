@@ -227,6 +227,39 @@ export class ParticleSystem {
     })
   }
 
+  // SES揃い: リール停止時のゴールドバースト
+  emitReelStop(x: number, y: number): void {
+    this.burst(x, y, 40, {
+      colors: ['#fbbf24', '#f59e0b', '#fde68a', '#fff', '#d97706'],
+      speed: 5, life: 1.0, size: 5, gravity: 0.06, friction: 0.96,
+    })
+  }
+
+  // SES揃い: 大セレブレーション（レインボー紙吹雪）
+  emitSuperCelebration(): void {
+    const colors = [
+      '#ef4444', '#f97316', '#f59e0b', '#22c55e',
+      '#3b82f6', '#a855f7', '#ec4899', '#fbbf24',
+      '#06b6d4', '#10b981', '#fde68a', '#fff',
+    ]
+    for (let i = 0; i < 200; i++) {
+      this.spawn({
+        x: Math.random() * this.w,
+        y: -10 - Math.random() * 60,
+        vx: (Math.random() - 0.5) * 6,
+        vy: Math.random() * 3 + 1,
+        life: 3 + Math.random() * 3,
+        size: 5 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        gravity: 0.04,
+        friction: 0.995,
+        type: 'rect',
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.2,
+      })
+    }
+  }
+
   emitAmbient(): void {
     if (this.particles.length > 150) return
     this.spawn({
