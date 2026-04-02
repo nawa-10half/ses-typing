@@ -35,19 +35,18 @@ function buildReelStrip(): string[] {
 function SlotReels({ stoppedReels }: { stoppedReels: number }) {
   const strips = useMemo(() => [buildReelStrip(), buildReelStrip(), buildReelStrip()], [])
   const reelRefs = useRef<(HTMLDivElement | null)[]>([null, null, null])
-  const offsetRefs = useRef([0, 0, 0])
+  const initialOffset = -(REEL_SYMBOLS.length * 5 - VISIBLE_ROWS) * SYMBOL_HEIGHT
+  const offsetRefs = useRef([initialOffset, initialOffset, initialOffset])
   const rafRef = useRef(0)
   const stoppedRef = useRef(stoppedReels)
   stoppedRef.current = stoppedReels
 
   // SESが中段に来る停止位置を計算
   const getStopOffset = useCallback(() => {
-    // 中段 = 1行目（0-indexed）に SES を表示するための offset
-    // 十分スクロールした位置の SES_INDEX を使う
     const symbolsCount = REEL_SYMBOLS.length
     const cycleOffset = symbolsCount * 3 // 3サイクル目
     const targetIdx = cycleOffset + SES_INDEX
-    // 中段に配置: offset = -(targetIdx - 1) * SYMBOL_HEIGHT
+    // 中段(1行目)に配置
     return -(targetIdx - 1) * SYMBOL_HEIGHT
   }, [])
 
@@ -58,11 +57,10 @@ function SlotReels({ stoppedReels }: { stoppedReels: number }) {
     const animate = () => {
       for (let i = 0; i < 3; i++) {
         if (i < stoppedRef.current) continue // 停止済み
-        offsetRefs.current[i] -= speeds[i]
-        // ループ: 十分戻ったらリセット
-        const maxOffset = -(totalSymbols - VISIBLE_ROWS) * SYMBOL_HEIGHT
-        if (offsetRefs.current[i] < maxOffset) {
-          offsetRefs.current[i] = 0
+        offsetRefs.current[i] += speeds[i]
+        // ループ: 0に達したら底にリセット
+        if (offsetRefs.current[i] >= 0) {
+          offsetRefs.current[i] = -(totalSymbols - VISIBLE_ROWS) * SYMBOL_HEIGHT
         }
         if (reelRefs.current[i]) {
           reelRefs.current[i]!.style.transform = `translateY(${offsetRefs.current[i]}px)`
@@ -75,15 +73,30 @@ function SlotReels({ stoppedReels }: { stoppedReels: number }) {
     return () => cancelAnimationFrame(rafRef.current)
   }, [strips])
 
-  // リール停止処理
+  // リール停止処理: 必ず正回転方向（下→上、translateY増加方向）で停止させる
   useEffect(() => {
     for (let i = 0; i < stoppedReels; i++) {
       const stopY = getStopOffset()
-      offsetRefs.current[i] = stopY
-      if (reelRefs.current[i]) {
-        reelRefs.current[i]!.classList.add('reel-stopping')
-        reelRefs.current[i]!.style.transform = `translateY(${stopY}px)`
+      const el = reelRefs.current[i]
+      if (!el) continue
+
+      const currentY = offsetRefs.current[i]
+      // 現在位置が停止位置より上（値が大きい）場合、1サイクル分下にスナップ
+      const cycleLen = REEL_SYMBOLS.length * SYMBOL_HEIGHT
+      let snapY = currentY
+      while (snapY > stopY) {
+        snapY -= cycleLen
       }
+      // まずスナップ位置に即座に移動（トランジションなし）
+      el.style.transition = 'none'
+      el.style.transform = `translateY(${snapY}px)`
+      // 次フレームでトランジション付きで停止位置へ
+      requestAnimationFrame(() => {
+        el.classList.add('reel-stopping')
+        el.style.transition = ''
+        el.style.transform = `translateY(${stopY}px)`
+      })
+      offsetRefs.current[i] = stopY
     }
   }, [stoppedReels, getStopOffset])
 
@@ -304,13 +317,10 @@ export function SuperBonusOverlay({ audio, onEnd }: SuperBonusOverlayProps) {
 
     return (
       <div className="slot-machine-overlay">
-        {/* SES揃いタイトル */}
+        {/* SUPER BONUSタイトル */}
         <div className="text-center mb-6">
           <div className="text-[11px] font-bold tracking-[6px] text-amber-400/60 uppercase mb-2">
             SUPER BONUS
-          </div>
-          <div className="text-2xl font-black tracking-[4px] text-amber-400 animate-neon-pulse">
-            SES揃い
           </div>
         </div>
 

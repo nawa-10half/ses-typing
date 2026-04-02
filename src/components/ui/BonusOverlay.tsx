@@ -152,7 +152,7 @@ export function BonusOverlay({ audio, onEnd }: BonusOverlayProps) {
       particles.emitBonusCorrect(rect.left + rect.width / 2, rect.top + rect.height / 3)
     }
 
-    setTimeout(advanceBonusWord, 1200)
+    setTimeout(advanceBonusWord, 600)
   }, [completeBonusWord, audio, particles, spawnFloat, advanceBonusWord, bonusWord, stopTimerTick, enterSuperBonus])
 
   // ── Keydown handler (direct character input) ──

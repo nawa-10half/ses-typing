@@ -143,6 +143,30 @@ export function ResultReveal({
       pixel: 'https://www14.a8.net/0.gif?a8mat=4AZS0W+8G8IWI+3TVC+BXYE9',
       width: 300, height: 250,
     },
+    {
+      href: 'https://px.a8.net/svt/ejp?a8mat=4AZS0W+8TC27M+5R1M+62MDD',
+      img: 'https://www23.a8.net/svt/bgt?aid=260330144533&wid=001&eno=01&mid=s00000026833001020000&mc=1',
+      pixel: 'https://www12.a8.net/0.gif?a8mat=4AZS0W+8TC27M+5R1M+62MDD',
+      width: 300, height: 250,
+    },
+    {
+      href: 'https://px.a8.net/svt/ejp?a8mat=4AZS0W+9FYJ76+5EO2+5ZEMP',
+      img: 'https://www22.a8.net/svt/bgt?aid=260330144571&wid=001&eno=01&mid=s00000025229001005000&mc=1',
+      pixel: 'https://www13.a8.net/0.gif?a8mat=4AZS0W+9FYJ76+5EO2+5ZEMP',
+      width: 300, height: 250,
+    },
+    {
+      href: 'https://px.a8.net/svt/ejp?a8mat=4AZS0W+8TXHTE+2OM2+103Q4H',
+      img: 'https://www24.a8.net/svt/bgt?aid=260330144534&wid=001&eno=01&mid=s00000012521006064000&mc=1',
+      pixel: 'https://www13.a8.net/0.gif?a8mat=4AZS0W+8TXHTE+2OM2+103Q4H',
+      width: 300, height: 250,
+    },
+    {
+      href: 'https://px.a8.net/svt/ejp?a8mat=4B1BLK+33XIIA+5KF0+5Z6WX',
+      img: 'https://www20.a8.net/svt/bgt?aid=260402168188&wid=001&eno=01&mid=s00000025974001004000&mc=1',
+      pixel: 'https://www18.a8.net/0.gif?a8mat=4B1BLK+33XIIA+5KF0+5Z6WX',
+      width: 300, height: 250,
+    },
   ]
 
   // ランダムに2件選択（マウント時に確定）

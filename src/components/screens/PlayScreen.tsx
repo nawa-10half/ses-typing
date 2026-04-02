@@ -40,6 +40,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
   const startNextWord = useGameStore(s => s.startNextWord)
 
   const enterBonus = useGameStore(s => s.enterBonus)
+  const enterSuperBonus = useGameStore(s => s.enterSuperBonus)
   const bonusPhase = useBonusPhase()
 
   const word = useCurrentWord()
@@ -176,6 +177,24 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     return false
   }, [bonusPhase, stopGlobal, enterBonus])
 
+  // ── デバッグ: Tilde(~) 5連打でスーパーボーナス発動 ──
+  const superCheatRef = useRef({ count: 0, timer: 0 })
+  const handleSuperCheatKey = useCallback((e: KeyboardEvent) => {
+    if (e.key !== '~') return false
+    const c = superCheatRef.current
+    c.count++
+    clearTimeout(c.timer)
+    c.timer = window.setTimeout(() => { c.count = 0 }, 1000)
+    if (c.count >= 5 && bonusPhase === 'inactive') {
+      c.count = 0
+      savedRemainingRef.current = getRemaining()
+      stopGlobal()
+      enterSuperBonus()
+      return true
+    }
+    return false
+  }, [bonusPhase, stopGlobal, enterSuperBonus])
+
   // ── キー処理（共通） ──
   const processCharKey = useCallback((key: string) => {
     if (bonusPhase !== 'inactive') return
@@ -230,8 +249,9 @@ export function PlayScreen({ audio }: PlayScreenProps) {
         return
       }
 
-      // Debug cheat key
+      // Debug cheat keys
       if (handleCheatKey(e)) return
+      if (handleSuperCheatKey(e)) return
 
       if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return
       const key = e.key.toLowerCase()
@@ -241,7 +261,7 @@ export function PlayScreen({ audio }: PlayScreenProps) {
 
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [processCharKey, handleCheatKey, stopGlobal, setScreen])
+  }, [processCharKey, handleCheatKey, handleSuperCheatKey, stopGlobal, setScreen])
 
 
   // ── Resume normal game after bonus ──
@@ -251,8 +271,9 @@ export function PlayScreen({ audio }: PlayScreenProps) {
     if (remaining > 0) {
       startGlobal(remaining)
     }
+    advance()
     startNextWord()
-  }, [startNextWord, startGlobal, resetCombo])
+  }, [advance, startNextWord, startGlobal, resetCombo])
 
   if (!word) return null
 
@@ -379,6 +400,16 @@ export function PlayScreen({ audio }: PlayScreenProps) {
           {formatMonths(score)}
         </span>
         <FloatScoreContainer items={floatItems} />
+      </div>
+
+      {/* メニューに戻る */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => { stopGlobal(); setScreen('title') }}
+          className="text-[11px] text-white/30 hover:text-white/60 transition-colors tracking-wide"
+        >
+          ESC — メニューに戻る
+        </button>
       </div>
     </motion.div>
     </>

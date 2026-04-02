@@ -263,19 +263,27 @@ export const useGameStore = create<GameState>()(
         })
       },
 
-      setBonusPhase: (phase) => set({ bonusPhase: phase }),
+      setBonusPhase: (phase) => {
+        // ボーナスのactive開始時にwordStartTimeをセット
+        if (phase === 'active') {
+          set({ bonusPhase: phase, wordStartTime: performance.now() })
+        } else {
+          set({ bonusPhase: phase })
+        }
+      },
 
       completeBonusWord: () => {
         const state = get()
         const word = state.bonusWords[state.bonusWordIdx]
         const bonusMonths = Math.round(state.monthsPerWord * BONUS_MULTIPLIER)
+        const elapsed = performance.now() - state.wordStartTime
 
         const entry: LogEntry = {
           word: word.word,
           ok: true,
           pts: bonusMonths,
           combo: state.combo,
-          time: 0,
+          time: Math.round(elapsed),
         }
 
         set({
@@ -286,7 +294,7 @@ export const useGameStore = create<GameState>()(
           log: [...state.log, entry],
         })
 
-        return { pts: bonusMonths, combo: state.combo, timeBonus: 0, months: bonusMonths, elapsed: 0, flavor: word.flavor }
+        return { pts: bonusMonths, combo: state.combo, timeBonus: 0, months: bonusMonths, elapsed, flavor: word.flavor }
       },
 
       handleBonusTimeout: () => {
@@ -309,12 +317,13 @@ export const useGameStore = create<GameState>()(
       advanceBonus: () => {
         const state = get()
         const nextIdx = state.bonusWordIdx + 1
+        const now = performance.now()
         if (nextIdx >= state.bonusWords.length) {
           // Re-shuffle and loop
           const reshuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
-          set({ bonusWords: reshuffled, bonusWordIdx: 0 })
+          set({ bonusWords: reshuffled, bonusWordIdx: 0, wordStartTime: now })
         } else {
-          set({ bonusWordIdx: nextIdx })
+          set({ bonusWordIdx: nextIdx, wordStartTime: now })
         }
       },
 

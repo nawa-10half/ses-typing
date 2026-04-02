@@ -185,6 +185,14 @@ export function parseKana(rawKana: string): KanaChunk[] {
       }
     }
 
+    // ── ASCII direct input (a-z, A-Z, 0-9, symbols) ──
+    const ch = kana[i]
+    if (/[a-zA-Z0-9\-_./!@#$%^&*()=+\[\]{}<>?;:'",\\|`~ ]/.test(ch)) {
+      chunks.push({ kana: ch, options: [ch.toLowerCase()] })
+      i++
+      continue
+    }
+
     // ── Single kana ──
     const one = kana[i]
     if (KANA_MAP[one]) {
