@@ -80,6 +80,14 @@ export function BonusGachaOverlay({ audio, onEnd }: BonusGachaOverlayProps) {
       const t = setTimeout(() => setBonusPhase('gacha-reveal'), 2500)
       return () => clearTimeout(t)
     }
+    if (bonusPhase === 'gacha-super') {
+      audio.bonusCorrect()
+      if (particles) {
+        particles.emitBonusIntro(window.innerWidth / 2, window.innerHeight / 2)
+      }
+      const t = setTimeout(() => enterSuperBonus(), 3000)
+      return () => clearTimeout(t)
+    }
     if (bonusPhase === 'gacha-reveal') {
       if (particles) {
         particles.emitBonusIntro(window.innerWidth / 2, window.innerHeight / 2)
@@ -151,7 +159,7 @@ export function BonusGachaOverlay({ audio, onEnd }: BonusGachaOverlayProps) {
     // ワード完了ごとにスーパーボーナス判定（~3%/word）
     if (Math.random() < SUPER_BONUS_PER_WORD_CHANCE) {
       stopTimerTick()
-      enterSuperBonus()
+      setBonusPhase('gacha-super')
       return
     }
 
@@ -327,6 +335,37 @@ export function BonusGachaOverlay({ audio, onEnd }: BonusGachaOverlayProps) {
             <span className="text-[11px] text-purple-400/50 whitespace-nowrap tracking-wide">常駐</span>
             <span className={`text-[22px] font-bold min-w-[52px] text-right text-purple-300 ${scorePop ? 'animate-score-pop' : ''}`}>{formatMonths(score)}</span>
             <FloatScoreContainer items={floatItems} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (bonusPhase === 'gacha-super') {
+    return (
+      <div className="bonus-overlay" style={{ background: 'radial-gradient(ellipse at center, rgba(40, 20, 0, 0.95), rgba(5, 0, 10, 0.98))' }}>
+        <div className="text-center">
+          <div className="text-[11px] font-bold tracking-[6px] uppercase mb-2 animate-pulse"
+            style={{
+              background: 'linear-gradient(90deg, #fbbf24, #ef4444, #a855f7, #3b82f6, #22c55e, #fbbf24)',
+              backgroundSize: '200% 100%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'rainbowShift 1s linear infinite',
+            }}>
+            &#x2605; ULTRA RARE &#x2605;
+          </div>
+          <div className="text-4xl font-black tracking-[4px] mb-4 text-yellow-300"
+            style={{
+              textShadow: '0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.4)',
+            }}>
+            フルリモート自社開発案件
+          </div>
+          <div className="text-sm text-yellow-400/60 mb-6">
+            配属が決定しました...
+          </div>
+          <div className="text-xs text-white/30 animate-pulse">
+            ...!?
           </div>
         </div>
       </div>

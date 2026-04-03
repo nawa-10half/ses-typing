@@ -442,11 +442,6 @@ export const GACHA_MULTIPLIERS: Record<Exclude<import('../types/game.ts').GachaR
 
 export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRarity, 'UR'>, { name: string; words: import('../types/game.ts').Word[] }[]> = {
   SSR: [
-    { name: 'フルリモート自社開発', words: [
-      { word: 'ls', kana: 'ls', flavor: '最高の案件を引いた' },
-      { word: 'pwd', kana: 'pwd', flavor: '在宅勤務の幸せ' },
-      { word: 'cd ~', kana: 'cd ~', flavor: '家が職場' },
-    ]},
     { name: '定時帰りホワイト企業', words: [
       { word: 'exit', kana: 'exit', flavor: '17時30分退勤' },
       { word: 'logout', kana: 'logout', flavor: 'お先に失礼します' },
@@ -457,7 +452,7 @@ export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRari
       { word: 'date', kana: 'date', flavor: '稼働日数も自由' },
       { word: 'whoami', kana: 'whoami', flavor: '自分の名前で仕事する' },
     ]},
-    { name: '自社サービス開発', words: [
+    { name: '自社開発案件', words: [
       { word: 'git init', kana: 'git init', flavor: 'ゼロから作る喜び' },
       { word: 'npm create', kana: 'npm create', flavor: '技術選定も自分で' },
       { word: 'open localhost', kana: 'open localhost', flavor: '自分のプロダクト' },

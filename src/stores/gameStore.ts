@@ -25,6 +25,7 @@ export type BonusPhase =
   | 'incident-crash'
   // Gacha bonus
   | 'gacha-blackout' | 'gacha-spin' | 'gacha-reveal' | 'gacha-active' | 'gacha-outro'
+  | 'gacha-super'
   // Super bonus
   | 'super-rm-exec' | 'super-blackout' | 'super-reels'
   | 'super-type-system' | 'super-type-engineering' | 'super-type-service'
