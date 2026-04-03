@@ -41,19 +41,8 @@ export function PrivacyScreen() {
           <section>
             <h2 className="text-[15px] font-semibold text-white/90 mb-2">3. 広告について</h2>
             <p>
-              当サイトでは、第三者配信の広告サービス「Google AdSense」を利用しています。
-              Google AdSenseでは、ユーザーの興味に応じた広告を表示するために、Cookieを使用することがあります。
-              Cookieの使用を望まない場合は、ブラウザの設定から無効にすることが可能です。
-              詳しくは
-              <a
-                href="https://policies.google.com/technologies/ads?hl=ja"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent underline underline-offset-2"
-              >
-                Googleの広告に関するポリシー
-              </a>
-              をご確認ください。
+              当サイトでは、アフィリエイトプログラムを利用した広告を掲載しています。
+              広告リンクを経由して商品・サービスの購入等が行われた場合、当社が報酬を受け取ることがあります。
             </p>
           </section>
 
