@@ -368,6 +368,54 @@ export const INCIDENTS: import('../types/game.ts').IncidentData[] = [
       { word: 'tail -100 /var/log/cron.log', kana: 'tail -100 /var/log/cron.log', flavor: 'ログ確認' },
     ],
   },
+  {
+    name: 'DNS障害',
+    description: '名前解決に失敗し全サービスがダウンしています',
+    commands: [
+      { word: 'dig example.com', kana: 'dig example.com', flavor: 'DNS問い合わせ' },
+      { word: 'cat /etc/resolv.conf', kana: 'cat /etc/resolv.conf', flavor: 'DNSサーバー確認' },
+      { word: 'systemctl restart named', kana: 'systemctl restart named', flavor: 'DNS再起動' },
+    ],
+  },
+  {
+    name: 'ログ肥大化',
+    description: 'アプリログが100GBを超えてディスクを圧迫しています',
+    commands: [
+      { word: 'ls -lh /var/log/app/', kana: 'ls -lh /var/log/app/', flavor: 'サイズ確認' },
+      { word: 'logrotate -f /etc/logrotate.conf', kana: 'logrotate -f /etc/logrotate.conf', flavor: 'ログローテーション実行' },
+      { word: 'gzip /var/log/app/old.log', kana: 'gzip /var/log/app/old.log', flavor: '古いログを圧縮' },
+      { word: 'df -h', kana: 'df -h', flavor: '空き容量確認' },
+    ],
+  },
+  {
+    name: 'APIレスポンス遅延',
+    description: 'APIのレスポンスタイムが10秒を超えています',
+    commands: [
+      { word: 'curl -o /dev/null -w "%{time_total}" api', kana: 'curl -o /dev/null -w "%{time_total}" api', flavor: 'レスポンスタイム計測' },
+      { word: 'mysql -e "SHOW PROCESSLIST"', kana: 'mysql -e "SHOW PROCESSLIST"', flavor: 'スロークエリ調査' },
+      { word: 'redis-cli slowlog get 10', kana: 'redis-cli slowlog get 10', flavor: 'Redisスローログ' },
+      { word: 'kill -HUP nginx_pid', kana: 'kill -HUP nginx_pid', flavor: 'Nginxグレースフルリロード' },
+    ],
+  },
+  {
+    name: 'Docker障害',
+    description: 'コンテナが全てExitedステータスになっています',
+    commands: [
+      { word: 'docker ps -a', kana: 'docker ps -a', flavor: 'コンテナ状態確認' },
+      { word: 'docker logs --tail 50 app', kana: 'docker logs --tail 50 app', flavor: 'ログ確認' },
+      { word: 'docker compose down', kana: 'docker compose down', flavor: '全コンテナ停止' },
+      { word: 'docker compose up -d', kana: 'docker compose up -d', flavor: '再起動' },
+    ],
+  },
+  {
+    name: 'SSH接続不可',
+    description: '本番サーバーにSSH接続ができなくなりました',
+    commands: [
+      { word: 'ssh -v production', kana: 'ssh -v production', flavor: '接続デバッグ' },
+      { word: 'ping production-server', kana: 'ping production-server', flavor: '疎通確認' },
+      { word: 'systemctl restart sshd', kana: 'systemctl restart sshd', flavor: 'SSH再起動（コンソールから）' },
+    ],
+  },
 ]
 
 export const INCIDENT_MULTIPLIER_MIN = 5.0
@@ -404,6 +452,16 @@ export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRari
       { word: 'logout', kana: 'logout', flavor: 'お先に失礼します' },
       { word: 'bye', kana: 'bye', flavor: 'さようなら' },
     ]},
+    { name: '高単価フリーランス案件', words: [
+      { word: 'echo "hello"', kana: 'echo "hello"', flavor: '月単価100万超え' },
+      { word: 'date', kana: 'date', flavor: '稼働日数も自由' },
+      { word: 'whoami', kana: 'whoami', flavor: '自分の名前で仕事する' },
+    ]},
+    { name: '自社サービス開発', words: [
+      { word: 'git init', kana: 'git init', flavor: 'ゼロから作る喜び' },
+      { word: 'npm create', kana: 'npm create', flavor: '技術選定も自分で' },
+      { word: 'open localhost', kana: 'open localhost', flavor: '自分のプロダクト' },
+    ]},
   ],
   SR: [
     { name: 'モダン技術スタック案件', words: [
@@ -415,6 +473,16 @@ export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRari
       { word: 'yarn dev', kana: 'yarn dev', flavor: 'スピード重視' },
       { word: 'vercel deploy', kana: 'vercel deploy', flavor: 'モダンなインフラ' },
       { word: 'prisma migrate', kana: 'prisma migrate', flavor: '最新ORM' },
+    ]},
+    { name: 'AWS案件', words: [
+      { word: 'aws s3 sync . s3://bucket', kana: 'aws s3 sync . s3://bucket', flavor: 'クラウドネイティブ' },
+      { word: 'terraform plan', kana: 'terraform plan', flavor: 'IaC完備' },
+      { word: 'kubectl get pods', kana: 'kubectl get pods', flavor: 'K8s運用' },
+    ]},
+    { name: 'データ分析案件', words: [
+      { word: 'jupyter notebook', kana: 'jupyter notebook', flavor: 'Pythonで分析' },
+      { word: 'pip install pandas', kana: 'pip install pandas', flavor: 'データ処理の定番' },
+      { word: 'python train.py', kana: 'python train.py', flavor: '機械学習もやる' },
     ]},
   ],
   R: [
@@ -428,6 +496,16 @@ export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRari
       { word: 'top -c', kana: 'top -c', flavor: 'リソース監視' },
       { word: 'zabbix_sender -s host', kana: 'zabbix_sender -s host', flavor: '監視データ送信' },
     ]},
+    { name: 'PHP案件', words: [
+      { word: 'php artisan migrate', kana: 'php artisan migrate', flavor: 'Laravelの世界' },
+      { word: 'composer install', kana: 'composer install', flavor: '依存関係インストール' },
+      { word: 'php -S localhost:8000', kana: 'php -S localhost:8000', flavor: 'ビルトインサーバー' },
+    ]},
+    { name: 'ネットワーク保守案件', words: [
+      { word: 'traceroute 8.8.8.8', kana: 'traceroute 8.8.8.8', flavor: '経路調査' },
+      { word: 'tcpdump -i eth0', kana: 'tcpdump -i eth0', flavor: 'パケットキャプチャ' },
+      { word: 'nslookup example.com', kana: 'nslookup example.com', flavor: 'DNS引いてみる' },
+    ]},
   ],
   N: [
     { name: 'レガシーVBA案件', words: [
@@ -439,6 +517,16 @@ export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRari
       { word: 'copy /b sheet1.xlsx+sheet2.xlsx merged.xlsx', kana: 'copy /b sheet1.xlsx+sheet2.xlsx merged.xlsx', flavor: 'エクセル結合の闇' },
       { word: 'wmic process list brief', kana: 'wmic process list brief', flavor: '古のWindowsコマンド' },
       { word: 'net use Z: \\\\server\\share', kana: 'net use Z: \\\\server\\share', flavor: '共有フォルダマッピング' },
+    ]},
+    { name: 'COBOL移行案件', words: [
+      { word: 'cobc -x -o output legacy.cob', kana: 'cobc -x -o output legacy.cob', flavor: '化石言語のコンパイル' },
+      { word: 'iconv -f SJIS -t UTF-8 data.dat', kana: 'iconv -f SJIS -t UTF-8 data.dat', flavor: '文字コード変換地獄' },
+      { word: 'diff -u old_spec.txt new_spec.txt', kana: 'diff -u old_spec.txt new_spec.txt', flavor: '仕様書の差分1000行' },
+    ]},
+    { name: 'オンプレ移行案件', words: [
+      { word: 'rsync -avz /data/ backup:/data/', kana: 'rsync -avz /data/ backup:/data/', flavor: 'データ移行に3日かかる' },
+      { word: 'fdisk -l /dev/sda', kana: 'fdisk -l /dev/sda', flavor: 'パーティション確認' },
+      { word: 'mount -t nfs server:/share /mnt', kana: 'mount -t nfs server:/share /mnt', flavor: 'NFS設定' },
     ]},
   ],
 }
