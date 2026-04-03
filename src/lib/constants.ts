@@ -279,10 +279,169 @@ export const BONUS_MULTIPLIER = 7.0
 export const BONUS_WORD_COUNT = 3
 export const BONUS_TIME_LIMIT = 15000 // ボーナスタイム全体の制限時間 (ms)
 
+// ── ボーナスモード選択 ──
+export const BONUS_MODE_WEIGHTS: { mode: import('../types/game.ts').BonusMode; weight: number }[] = [
+  { mode: 'normal', weight: 50 },
+  { mode: 'incident', weight: 30 },
+  { mode: 'gacha', weight: 20 },
+]
+
 // ── SES揃い（スーパーボーナス）──
 export const SUPER_BONUS_TRIGGER_WORD = 'rm -rf /*'
 export const SUPER_BONUS_CHANCE = 1.0
 export const SUPER_BONUS_TYPE_WORDS = ['System', 'Engineering', 'Service'] as const
+
+// ── 障害対応モード ──
+export const INCIDENTS: import('../types/game.ts').IncidentData[] = [
+  {
+    name: 'DBコネクション枯渇',
+    description: '本番DBのコネクションプールが枯渇しています',
+    commands: [
+      { word: 'show processlist', kana: 'show processlist', flavor: '接続状況を確認' },
+      { word: 'kill idle connections', kana: 'kill idle connections', flavor: 'アイドル接続を切断' },
+      { word: 'systemctl restart mysql', kana: 'systemctl restart mysql', flavor: 'DBを再起動' },
+    ],
+  },
+  {
+    name: 'メモリリーク検知',
+    description: 'アプリサーバーのメモリ使用量が95%に達しています',
+    commands: [
+      { word: 'top -o %MEM', kana: 'top -o %MEM', flavor: 'メモリ使用量を確認' },
+      { word: 'kill -15 app', kana: 'kill -15 app', flavor: 'アプリをグレースフルに停止' },
+      { word: 'systemctl restart app', kana: 'systemctl restart app', flavor: 'アプリを再起動' },
+      { word: 'tail -f /var/log/app.log', kana: 'tail -f /var/log/app.log', flavor: 'ログを監視' },
+    ],
+  },
+  {
+    name: 'ディスク容量逼迫',
+    description: '/dev/sda1 の使用率が98%に到達しました',
+    commands: [
+      { word: 'df -h', kana: 'df -h', flavor: 'ディスク使用状況を確認' },
+      { word: 'du -sh /var/log/*', kana: 'du -sh /var/log/*', flavor: '犯人を探す' },
+      { word: 'rm -f /var/log/*.old', kana: 'rm -f /var/log/*.old', flavor: '古いログを削除' },
+    ],
+  },
+  {
+    name: 'SSL証明書期限切れ',
+    description: '本番サイトのSSL証明書が期限切れです',
+    commands: [
+      { word: 'openssl x509 -enddate', kana: 'openssl x509 -enddate', flavor: '期限を確認' },
+      { word: 'certbot renew', kana: 'certbot renew', flavor: '証明書を更新' },
+      { word: 'nginx -s reload', kana: 'nginx -s reload', flavor: 'Nginxをリロード' },
+    ],
+  },
+  {
+    name: 'DDoS攻撃検知',
+    description: '異常なトラフィック増加を検知しました',
+    commands: [
+      { word: 'netstat -an | wc -l', kana: 'netstat -an | wc -l', flavor: '接続数を確認' },
+      { word: 'iptables -A INPUT -s attacker -j DROP', kana: 'iptables -A INPUT -s attacker -j DROP', flavor: '攻撃元をブロック' },
+      { word: 'systemctl restart nginx', kana: 'systemctl restart nginx', flavor: 'Webサーバー再起動' },
+    ],
+  },
+  {
+    name: 'デプロイ失敗',
+    description: '本番デプロイがロールバックされました',
+    commands: [
+      { word: 'git log --oneline -5', kana: 'git log --oneline -5', flavor: '直近のコミットを確認' },
+      { word: 'git revert HEAD', kana: 'git revert HEAD', flavor: '問題のコミットを戻す' },
+      { word: 'docker compose up -d', kana: 'docker compose up -d', flavor: '再デプロイ' },
+      { word: 'curl -I https://production', kana: 'curl -I https://production', flavor: '動作確認' },
+    ],
+  },
+  {
+    name: 'Redis障害',
+    description: 'キャッシュサーバーが応答しません',
+    commands: [
+      { word: 'redis-cli ping', kana: 'redis-cli ping', flavor: '生死確認' },
+      { word: 'systemctl restart redis', kana: 'systemctl restart redis', flavor: 'Redis再起動' },
+      { word: 'redis-cli info memory', kana: 'redis-cli info memory', flavor: 'メモリ状況確認' },
+    ],
+  },
+  {
+    name: 'Cron暴走',
+    description: 'バッチ処理が無限ループしています',
+    commands: [
+      { word: 'ps aux | grep cron', kana: 'ps aux | grep cron', flavor: 'プロセスを特定' },
+      { word: 'kill -9 batch_pid', kana: 'kill -9 batch_pid', flavor: '強制停止' },
+      { word: 'crontab -e', kana: 'crontab -e', flavor: 'スケジュール修正' },
+      { word: 'tail -100 /var/log/cron.log', kana: 'tail -100 /var/log/cron.log', flavor: 'ログ確認' },
+    ],
+  },
+]
+
+export const INCIDENT_MULTIPLIER_MIN = 5.0
+export const INCIDENT_MULTIPLIER_MAX = 10.0
+
+// ── 各モード共通スーパーボーナス突入確率（ワード完了ごと）──
+// 通常ボーナスはrm -rf /*(1/34≒3%)で判定、障害対応・ガチャはこの確率で判定
+export const SUPER_BONUS_PER_WORD_CHANCE = 0.03
+
+// ── 案件ガチャモード ──
+export const GACHA_RARITY_TABLE: { rarity: import('../types/game.ts').GachaRarity; weight: number }[] = [
+  { rarity: 'SSR', weight: 5 },
+  { rarity: 'SR', weight: 15 },
+  { rarity: 'R', weight: 40 },
+  { rarity: 'N', weight: 40 },
+]
+
+export const GACHA_MULTIPLIERS: Record<Exclude<import('../types/game.ts').GachaRarity, 'UR'>, number> = {
+  SSR: 12.0,
+  SR: 8.0,
+  R: 6.0,
+  N: 4.0,
+}
+
+export const GACHA_PROJECTS: Record<Exclude<import('../types/game.ts').GachaRarity, 'UR'>, { name: string; words: import('../types/game.ts').Word[] }[]> = {
+  SSR: [
+    { name: 'フルリモート自社開発', words: [
+      { word: 'ls', kana: 'ls', flavor: '最高の案件を引いた' },
+      { word: 'pwd', kana: 'pwd', flavor: '在宅勤務の幸せ' },
+      { word: 'cd ~', kana: 'cd ~', flavor: '家が職場' },
+    ]},
+    { name: '定時帰りホワイト企業', words: [
+      { word: 'exit', kana: 'exit', flavor: '17時30分退勤' },
+      { word: 'logout', kana: 'logout', flavor: 'お先に失礼します' },
+      { word: 'bye', kana: 'bye', flavor: 'さようなら' },
+    ]},
+  ],
+  SR: [
+    { name: 'モダン技術スタック案件', words: [
+      { word: 'git pull origin main', kana: 'git pull origin main', flavor: 'TypeScript + React' },
+      { word: 'npm run build', kana: 'npm run build', flavor: 'CI/CDも完備' },
+      { word: 'docker compose up', kana: 'docker compose up', flavor: 'コンテナ環境' },
+    ]},
+    { name: 'スタートアップ案件', words: [
+      { word: 'yarn dev', kana: 'yarn dev', flavor: 'スピード重視' },
+      { word: 'vercel deploy', kana: 'vercel deploy', flavor: 'モダンなインフラ' },
+      { word: 'prisma migrate', kana: 'prisma migrate', flavor: '最新ORM' },
+    ]},
+  ],
+  R: [
+    { name: 'Java保守案件', words: [
+      { word: 'mvn clean install', kana: 'mvn clean install', flavor: 'ビルドに5分かかる' },
+      { word: 'tail -f catalina.out', kana: 'tail -f catalina.out', flavor: 'Tomcatログ監視' },
+      { word: 'vi applicationContext.xml', kana: 'vi applicationContext.xml', flavor: 'XML地獄' },
+    ]},
+    { name: 'インフラ監視案件', words: [
+      { word: 'ssh production-server', kana: 'ssh production-server', flavor: 'いつもの本番接続' },
+      { word: 'top -c', kana: 'top -c', flavor: 'リソース監視' },
+      { word: 'zabbix_sender -s host', kana: 'zabbix_sender -s host', flavor: '監視データ送信' },
+    ]},
+  ],
+  N: [
+    { name: 'レガシーVBA案件', words: [
+      { word: 'cscript //nologo legacy.vbs', kana: 'cscript //nologo legacy.vbs', flavor: 'VBScript実行' },
+      { word: 'reg query HKLM /s /f value', kana: 'reg query HKLM /s /f value', flavor: 'レジストリ調査' },
+      { word: 'schtasks /create /tn backup', kana: 'schtasks /create /tn backup', flavor: 'タスクスケジューラ' },
+    ]},
+    { name: 'エクセル方眼紙案件', words: [
+      { word: 'copy /b sheet1.xlsx+sheet2.xlsx merged.xlsx', kana: 'copy /b sheet1.xlsx+sheet2.xlsx merged.xlsx', flavor: 'エクセル結合の闇' },
+      { word: 'wmic process list brief', kana: 'wmic process list brief', flavor: '古のWindowsコマンド' },
+      { word: 'net use Z: \\\\server\\share', kana: 'net use Z: \\\\server\\share', flavor: '共有フォルダマッピング' },
+    ]},
+  ],
+}
 
 export const REEL_SYMBOLS = [
   'SES', 'Java', 'Excel', '客先', '単価',

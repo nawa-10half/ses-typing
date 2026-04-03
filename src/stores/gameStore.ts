@@ -3,16 +3,29 @@ import { persist } from 'zustand/middleware'
 import type {
   Screen, Word, Course, LogEntry, CorrectResult,
   HighScoreEntry, PlayerIdentity, CourseId,
+  BonusMode, GachaRarity, IncidentData,
 } from '../types/game.ts'
 import {
   calcWordTimer, getComboLevel, getComboMilestoneBonus,
   computeResults, MS_PER_MONTH,
+  selectBonusMode, rollGachaRarity, calcIncidentMultiplier,
 } from '../lib/gameLogic.ts'
 import { getDefaultRomaji } from '../lib/romajiEngine.ts'
-import { BONUS_WORDS, BONUS_MULTIPLIER } from '../lib/constants.ts'
+import {
+  BONUS_WORDS, BONUS_MULTIPLIER,
+  INCIDENTS, GACHA_MULTIPLIERS, GACHA_PROJECTS,
+} from '../lib/constants.ts'
 
 export type BonusPhase =
-  | 'inactive' | 'bsod' | 'blackout' | 'intro' | 'active' | 'outro'
+  | 'inactive'
+  // Normal bonus
+  | 'bsod' | 'blackout' | 'intro' | 'active' | 'outro'
+  // Incident bonus
+  | 'incident-alert' | 'incident-blackout' | 'incident-intro' | 'incident-active' | 'incident-outro'
+  | 'incident-crash'
+  // Gacha bonus
+  | 'gacha-blackout' | 'gacha-spin' | 'gacha-reveal' | 'gacha-active' | 'gacha-outro'
+  // Super bonus
   | 'super-rm-exec' | 'super-blackout' | 'super-reels'
   | 'super-type-system' | 'super-type-engineering' | 'super-type-service'
   | 'super-celebration'
@@ -56,8 +69,13 @@ interface GameState extends PersistedState {
 
   // Bonus mode
   bonusPhase: BonusPhase
+  bonusMode: BonusMode
   bonusWords: Word[]
   bonusWordIdx: number
+  bonusMultiplier: number
+  incidentData: IncidentData | null
+  gachaRarity: GachaRarity | null
+  gachaProjectName: string
 
   // Actions
   startGame: (course: Course) => void
@@ -121,8 +139,13 @@ export const useGameStore = create<GameState>()(
       pending: false,
 
       bonusPhase: 'inactive' as BonusPhase,
+      bonusMode: 'normal' as BonusMode,
       bonusWords: [],
       bonusWordIdx: 0,
+      bonusMultiplier: BONUS_MULTIPLIER,
+      incidentData: null,
+      gachaRarity: null,
+      gachaProjectName: '',
 
       startGame: (course) => {
         const shuffled = [...course.words].sort(() => Math.random() - 0.5)
@@ -147,8 +170,13 @@ export const useGameStore = create<GameState>()(
           wordTimerMax: 0,
           pending: false,
           bonusPhase: 'inactive' as BonusPhase,
+          bonusMode: 'normal' as BonusMode,
           bonusWords: [],
           bonusWordIdx: 0,
+          bonusMultiplier: BONUS_MULTIPLIER,
+          incidentData: null,
+          gachaRarity: null,
+          gachaProjectName: '',
           screen: 'play' as Screen,
           playCount: state.playCount + 1,
         }))
@@ -254,18 +282,55 @@ export const useGameStore = create<GameState>()(
       },
 
       enterBonus: () => {
-        const shuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
-        set({
-          bonusPhase: 'bsod' as BonusPhase,
-          bonusWords: shuffled,
-          bonusWordIdx: 0,
-          pending: true,
-        })
+        const mode = selectBonusMode()
+
+        if (mode === 'normal') {
+          const shuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
+          set({
+            bonusPhase: 'bsod' as BonusPhase,
+            bonusMode: 'normal',
+            bonusWords: shuffled,
+            bonusWordIdx: 0,
+            bonusMultiplier: BONUS_MULTIPLIER,
+            incidentData: null,
+            gachaRarity: null,
+            gachaProjectName: '',
+            pending: true,
+          })
+        } else if (mode === 'incident') {
+          const incident = INCIDENTS[Math.floor(Math.random() * INCIDENTS.length)]
+          set({
+            bonusPhase: 'incident-alert' as BonusPhase,
+            bonusMode: 'incident',
+            bonusWords: incident.commands,
+            bonusWordIdx: 0,
+            bonusMultiplier: 0, // 速度ベースで動的計算
+            incidentData: incident,
+            gachaRarity: null,
+            gachaProjectName: '',
+            pending: true,
+          })
+        } else {
+          const rarity = rollGachaRarity()
+          const projects = GACHA_PROJECTS[rarity]
+          const project = projects[Math.floor(Math.random() * projects.length)]
+          set({
+            bonusPhase: 'gacha-blackout' as BonusPhase,
+            bonusMode: 'gacha',
+            bonusWords: project.words,
+            bonusWordIdx: 0,
+            bonusMultiplier: GACHA_MULTIPLIERS[rarity],
+            incidentData: null,
+            gachaRarity: rarity,
+            gachaProjectName: project.name,
+            pending: true,
+          })
+        }
       },
 
       setBonusPhase: (phase) => {
-        // ボーナスのactive開始時にwordStartTimeをセット
-        if (phase === 'active') {
+        // active系フェーズ開始時にwordStartTimeをセット
+        if (phase === 'active' || phase === 'incident-active' || phase === 'gacha-active') {
           set({ bonusPhase: phase, wordStartTime: performance.now() })
         } else {
           set({ bonusPhase: phase })
@@ -275,8 +340,14 @@ export const useGameStore = create<GameState>()(
       completeBonusWord: () => {
         const state = get()
         const word = state.bonusWords[state.bonusWordIdx]
-        const bonusMonths = Math.round(state.monthsPerWord * BONUS_MULTIPLIER)
         const elapsed = performance.now() - state.wordStartTime
+
+        let multiplier = state.bonusMultiplier
+        if (state.bonusMode === 'incident') {
+          multiplier = calcIncidentMultiplier(elapsed, word.word.length)
+        }
+
+        const bonusMonths = Math.round(state.monthsPerWord * multiplier)
 
         const entry: LogEntry = {
           word: word.word,
@@ -319,8 +390,8 @@ export const useGameStore = create<GameState>()(
         const nextIdx = state.bonusWordIdx + 1
         const now = performance.now()
         if (nextIdx >= state.bonusWords.length) {
-          // Re-shuffle and loop
-          const reshuffled = [...BONUS_WORDS].sort(() => Math.random() - 0.5)
+          // 全モード共通: 再シャッフルしてループ
+          const reshuffled = [...state.bonusWords].sort(() => Math.random() - 0.5)
           set({ bonusWords: reshuffled, bonusWordIdx: 0, wordStartTime: now })
         } else {
           set({ bonusWordIdx: nextIdx, wordStartTime: now })

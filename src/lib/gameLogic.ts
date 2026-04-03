@@ -1,5 +1,5 @@
-import type { LogEntry, RankInfo, GameResult, ComboLevel, CourseId } from '../types/game.ts'
-import { RANKS, BONUS_TRIGGER_TABLE } from './constants.ts'
+import type { LogEntry, RankInfo, GameResult, ComboLevel, CourseId, BonusMode, GachaRarity } from '../types/game.ts'
+import { RANKS, BONUS_TRIGGER_TABLE, BONUS_MODE_WEIGHTS, GACHA_RARITY_TABLE, INCIDENT_MULTIPLIER_MIN, INCIDENT_MULTIPLIER_MAX } from './constants.ts'
 
 /** 2秒 = 1ヶ月 */
 export const MS_PER_MONTH = 2000
@@ -47,6 +47,37 @@ export function formatMonths(months: number): string {
 /** msから月数へ変換 */
 export function msToMonths(ms: number): number {
   return Math.floor(ms / MS_PER_MONTH)
+}
+
+/** 重み付きランダム選択 */
+function weightedRandom<T>(table: { weight: number }[], getValue: (entry: { weight: number }, idx: number) => T): T {
+  const total = table.reduce((sum, e) => sum + e.weight, 0)
+  let r = Math.random() * total
+  for (let i = 0; i < table.length; i++) {
+    r -= table[i].weight
+    if (r <= 0) return getValue(table[i], i)
+  }
+  return getValue(table[table.length - 1], table.length - 1)
+}
+
+/** ボーナスモードをランダム選択 */
+export function selectBonusMode(): BonusMode {
+  return weightedRandom(BONUS_MODE_WEIGHTS, (e) => (e as typeof BONUS_MODE_WEIGHTS[number]).mode)
+}
+
+/** ガチャレアリティを抽選 */
+export function rollGachaRarity(): Exclude<GachaRarity, 'UR'> {
+  return weightedRandom(GACHA_RARITY_TABLE, (e) => (e as typeof GACHA_RARITY_TABLE[number]).rarity) as Exclude<GachaRarity, 'UR'>
+}
+
+/** 障害対応モードの速度ベース倍率（速いほど高倍率） */
+export function calcIncidentMultiplier(elapsedMs: number, wordLength: number): number {
+  // 目標タイム: 1文字あたり300ms
+  const targetMs = wordLength * 300
+  const ratio = elapsedMs / targetMs
+  // ratio < 1 = 速い → 高倍率, ratio > 1 = 遅い → 低倍率
+  const multiplier = INCIDENT_MULTIPLIER_MAX - (ratio - 0.5) * (INCIDENT_MULTIPLIER_MAX - INCIDENT_MULTIPLIER_MIN)
+  return Math.max(INCIDENT_MULTIPLIER_MIN, Math.min(INCIDENT_MULTIPLIER_MAX, multiplier))
 }
 
 export function shouldTriggerBonus(combo: number): boolean {

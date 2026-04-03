@@ -56,6 +56,15 @@ export interface CorrectResult {
   flavor: string
 }
 
+export type BonusMode = 'normal' | 'incident' | 'gacha'
+export type GachaRarity = 'UR' | 'SSR' | 'SR' | 'R' | 'N'
+
+export interface IncidentData {
+  name: string
+  description: string
+  commands: Word[]
+}
+
 export type Screen = 'title' | 'play' | 'result' | 'privacy' | 'howto'
 
 export type ComboLevel = '0' | '1' | '2' | '3' | 'max'
